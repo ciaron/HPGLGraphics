@@ -13,7 +13,7 @@ import processing.core.*;
  * @example HPGL
  */
 
-public class HPGLGraphics extends PGraphics {
+abstract class HPGLGraphics extends PGraphics {
 
   File file;
   PrintWriter writer;
@@ -24,7 +24,7 @@ public class HPGLGraphics extends PGraphics {
 
   private boolean matricesAllocated = false;
   private boolean resize = false;
-
+  private String type;
   private int MATRIX_STACK_DEPTH = 32;
   private int transformCount = 0;
   private PMatrix2D transformStack[] = new PMatrix2D[MATRIX_STACK_DEPTH];
@@ -38,7 +38,9 @@ public class HPGLGraphics extends PGraphics {
    * @example HPGL
    * @param none
    */
-  public HPGLGraphics(){
+  public HPGLGraphics(String type){
+    this.type=type;
+    System.out.println(type);
     welcome();
     
     if (!matricesAllocated) {   
@@ -92,7 +94,6 @@ public class HPGLGraphics extends PGraphics {
   }
     
   public void beginDraw() {
-	
     // have to create file object here, because the name isn't yet
     // available in allocate()
     if (writer == null) {
