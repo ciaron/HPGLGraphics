@@ -1,4 +1,4 @@
-package cauliflower.hpgl;
+package hpglgraphics;
 
 import java.io.*;
 import processing.core.*;

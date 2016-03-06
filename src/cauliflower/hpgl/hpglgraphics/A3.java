@@ -1,4 +1,4 @@
-package cauliflower.hpgl;
+package hpglgraphics;
 
 public class A3 extends HPGLGraphics {
   
