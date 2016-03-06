@@ -3,6 +3,5 @@
 	<classpathentry excluding="cauliflower/hpgl/|cauliflower/hpgl/" kind="src" output="bin" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/linstead/processing-3.0.2/core/library/core.jar" sourcepath="/processing-core/src/processing/core"/>
-	<classpathentry kind="lib" path="src/cauliflower/hpgl"/>
 	<classpathentry kind="output" path="resources/code"/>
 </classpath>

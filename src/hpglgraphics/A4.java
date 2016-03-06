@@ -6,6 +6,5 @@ public class A4 extends HPGLGraphics {
   
   public A4() {
     super(type);
-    
   }
 }
