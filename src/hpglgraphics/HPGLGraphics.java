@@ -5,7 +5,9 @@ import processing.core.*;
 
 /**
  * This is a library for writing HPGL (plotter) files using beginRecord()/endRecord()
- * Borrows heavily from https://github.com/gregersn/HPGL
+ * Inspired by https://github.com/gregersn/HPGL
+ * Borrows from http://phi.lho.free.fr/programming/Processing/P8gGraphicsSVG/
+ * the OBJExport library and the Processing DXF library.
  * 
  * (the tag example followed by the name of an example included in folder 'examples' will
  * automatically include the example in the javadoc.)
@@ -13,18 +15,19 @@ import processing.core.*;
  * @example HPGL
  */
 
-abstract class HPGLGraphics extends PGraphics {
+public class HPGLGraphics extends PGraphics {
 
   File file;
   PrintWriter writer;
+  public static final String HPGL = "hpglgraphics.HPGLGraphics";
   
   /** Stores all the transformations */
   /* from HPGL by gsn */
   public PMatrix2D transformMatrix;
 
   private boolean matricesAllocated = false;
-  private boolean resize = false;
-  private String type;
+  //private boolean resize = false;
+  private String size;  // paper size, A3 or A4 for now
   private int MATRIX_STACK_DEPTH = 32;
   private int transformCount = 0;
   private PMatrix2D transformStack[] = new PMatrix2D[MATRIX_STACK_DEPTH];
@@ -38,9 +41,9 @@ abstract class HPGLGraphics extends PGraphics {
    * @example HPGL
    * @param none
    */
-  public HPGLGraphics(String type){
-    this.type=type;
-    System.out.println(type);
+  //public HPGLGraphics(String type){
+  public HPGLGraphics(){
+    
     welcome();
     
     if (!matricesAllocated) {   
@@ -51,7 +54,20 @@ abstract class HPGLGraphics extends PGraphics {
      }
   }
 	
+  /**
+   * This method sets the plotter output size, ie. scales the Processing sketch to
+   * match either A3 or A4 dimensions (only these supported now)
+   * 
+   * @example HPGL
+   * @param size
+   */
+  
+  public void setPaperSize(String size) {
+    this.size=size;
+  }
+  
   public void setPath(String path) {
+
     this.path = path;
    	if (path != null) {
 	     file = new File(path);
@@ -64,11 +80,13 @@ abstract class HPGLGraphics extends PGraphics {
   }
 
   public void dispose() {
-    writeFooter();
-
-    writer.flush();
-    writer.close();
-    writer = null;
+    System.out.println("file is: " + this.path);
+    System.out.println("size is: " + this.size);
+//    writeFooter();
+//
+//    writer.flush();
+//    writer.close();
+//    writer = null;
   }
 
 
@@ -77,15 +95,16 @@ abstract class HPGLGraphics extends PGraphics {
   }
 
   public boolean is2D() {
-    return false;
+    return true;
   }
 
   public boolean is3D() {
-	return true;
+	  return false;
   }
   
   private void writeHeader() {
   }
+  
   private void writeFooter() {
   }
   
@@ -96,19 +115,19 @@ abstract class HPGLGraphics extends PGraphics {
   public void beginDraw() {
     // have to create file object here, because the name isn't yet
     // available in allocate()
-    if (writer == null) {
-      try {
-        writer = new PrintWriter(new FileWriter(file));
-      } catch (IOException e) {
-        throw new RuntimeException(e);  // java 1.4+
-      }
-      writeHeader();
-    }
+//    if (writer == null) {
+//      try {
+//        writer = new PrintWriter(new FileWriter(file));
+//      } catch (IOException e) {
+//        throw new RuntimeException(e);  // java 1.4+
+//      }
+//      writeHeader();
+//    }
  
     //pushMatrix();
   }
 
-  public void endDraw() {
+  public void endDraw(String path) {
 
 //	   for (int i=0; i<vertices.length; i++) {
 // 	    for (int j=0; j<vertices[i].length; j++) {
@@ -116,9 +135,22 @@ abstract class HPGLGraphics extends PGraphics {
 //	     }
 //   	}
 	//popMatrix();
-
-    writer.flush();
+    
+    //writer.flush();
   }
+  public void endRecord()
+  {   
+      endDraw();
+      dispose(); 
+  }
+
+  public void endRecord(String filePath)
+  {   
+      
+      setPath(filePath);
+      endRecord();
+  }
+
   
   /**
    * Write a command on one line (as a String), then start a new line
