@@ -40,10 +40,9 @@ public class HPGLGraphics extends PGraphics {
    */
   public HPGLGraphics(){
     welcome();
-    System.out.println("HPGL: allocate()");
-
+    
     if (!matricesAllocated) {   
-      System.out.println("HPGL: Allocating and setting up default matrices");
+      //System.out.println("HPGL: Allocating and setting up default matrices");
       // Init default matrix
       this.transformMatrix = new PMatrix2D();
       matricesAllocated = true;
@@ -93,7 +92,6 @@ public class HPGLGraphics extends PGraphics {
   }
     
   public void beginDraw() {
-	   System.out.println("beginDraw()");
 	
     // have to create file object here, because the name isn't yet
     // available in allocate()
@@ -110,10 +108,7 @@ public class HPGLGraphics extends PGraphics {
   }
 
   public void endDraw() {
-    System.out.println("endDraw()");
-    //System.out.println(vertexCount);
-    //System.out.println(vertices.length);
-    //System.out.println(vertices[0].length);
+
 //	   for (int i=0; i<vertices.length; i++) {
 // 	    for (int j=0; j<vertices[i].length; j++) {
 //      	System.out.println("*" + vertices[i][j]);
@@ -143,40 +138,64 @@ public class HPGLGraphics extends PGraphics {
   public void println(String what) {
     writer.println(what);
   }
+  
   public void line(float x1, float y1, float x2, float y2) {
     System.out.println("got a line: " + x1 + " " + y1 + " " + x2 + " " + y2);
   }
   
+  public void ellipse(float x1, float y1, float w, float h) {
+    System.out.println("got an ellipse: " + x1 + " " + y1 + " " + w + " " + h);
+  }
+  
   public void rectImpl(float x1, float y1, float x2, float y2) {
-      // x2,y2 are opposite corner points, not width and height
-      System.out.println("got a rect: " + x1 + " " + y1 + " " + x2 + " " + y2);
-      this.transformMatrix.print();
+    // x2,y2 are opposite corner points, not width and height
+    // see PGraphics, line 2578 
+    System.out.println("got a rect: " + x1 + " " + y1 + " " + x2 + " " + y2);
+    this.transformMatrix.print();
       
-      float[] x1y1 = {x1,y1};
-      float[] x2y2 = {x2,y1};
+    float[] x1y1 = new float[2];
+    float[] x2y1 = new float[2];
+    float[] x2y2 = new float[2];
+    float[] x1y2 = new float[2];
       
-      float[] x1y1_1 = new float[2];
-      float[] x2y2_1 = new float[2];
+    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
+    this.transformMatrix.mult(new float[]{x2,y1}, x2y1);
+    this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
+    this.transformMatrix.mult(new float[]{x1,y2}, x1y2);
       
-      this.transformMatrix.mult(x1y1, x1y1_1);
-      this.transformMatrix.mult(x2y2, x2y2_1);
-      
-      System.out.println(x1y1_1[0] + " " + x1y1_1[1] + " " + x2y2_1[0] + " " + x2y2_1[1] );
-      
+    System.out.println(x1y1[0] + " " + x1y1[1] + " " + x2y2[0] + " " + x2y2[1] );
            
+  }
+  public void beginShape() {
+    System.out.println("got a shape");
   }
   
   public void beginShape(int kind) {
-      System.out.println(kind);
+    System.out.println("got a shape: " + kind);
 
-	  if (kind==LINE) {
-	    System.out.println("LINE");
-	  }
-	  if (kind==RECT) {
-        System.out.println("RECT");
-	  }
-	  
+	   if (kind==LINE) {
+	     System.out.println("LINE");
+	   }
+	   if (kind==RECT) {
+      System.out.println("RECT");
+	   }
   }
+  
+  public void endShape() {
+    System.out.println("shape ended");
+  }
+  
+  public void shape(PShape s){
+    System.out.println("got a shape");
+    
+  }
+  
+  public void vertex(float x, float y) {
+    System.out.println("got a vertex");
+    //vertex(x,y,0);
+  }
+
+  
   // / MATRIX STACK - from GraphicsHPGL.java, gsn/src
 
   public void pushMatrix() {
