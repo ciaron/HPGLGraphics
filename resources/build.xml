@@ -1,4 +1,4 @@
-<project name="Processing Library" default="clean" basedir="../">
+<project name="HPGLGraphics" default="clean" basedir="../">
 
     
 <!--	
