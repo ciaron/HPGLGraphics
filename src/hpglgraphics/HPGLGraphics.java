@@ -53,9 +53,14 @@ public class HPGLGraphics extends PGraphics {
       matricesAllocated = true;
      }
   }
-	
+
+  
+  private void welcome() {
+	   System.out.println("##library.name## ##library.prettyVersion## by ##author##");
+  }
+    
   /**
-   * This method sets the plotter output size, ie. scales the Processing sketch to
+   * This method sets the plotter output size. Used to scale the Processing sketch to
    * match either A3 or A4 dimensions (only these supported now)
    * 
    * @example HPGL
@@ -66,6 +71,14 @@ public class HPGLGraphics extends PGraphics {
     this.size=size;
   }
   
+  /**
+   * This method sets the path and filename for the HPGL output.
+   * Must be called from the Processing sketch
+   * 
+   * @example HPGL
+   * @param path
+   */
+  
   public void setPath(String path) {
 
     this.path = path;
@@ -75,83 +88,60 @@ public class HPGLGraphics extends PGraphics {
    	}
 	   if (file == null) {
 	     throw new RuntimeException("HPGL export requires an absolute path " +
-	                             "for the location of the output file.");
+	                                "for the location of the output file.");
    	}
   }
 
-  public void dispose() {
-    System.out.println("file is: " + this.path);
-    System.out.println("size is: " + this.size);
-//    writeFooter();
-//
-//    writer.flush();
-//    writer.close();
-//    writer = null;
-  }
-
-
-  public boolean displayable() {
-    return false;
-  }
-
-  public boolean is2D() {
-    return true;
-  }
-
-  public boolean is3D() {
-	  return false;
-  }
-  
-  private void writeHeader() {
-  }
-  
-  private void writeFooter() {
-  }
-  
-  private void welcome() {
-	   System.out.println("##library.name## ##library.prettyVersion## by ##author##");
-  }
-    
   public void beginDraw() {
+	  
+	//resetMatrix();
+	System.out.println("beginDraw " + this.path);
+	
+	if (this.path == null) {
+	  throw new RuntimeException("call setPath() before recording begins!");
+	}
+	
+	if (this.size == null) {
+		this.size="A4";
+		System.out.println("setPaperSize undefined: defaulting to A4");
+	}
+	
     // have to create file object here, because the name isn't yet
     // available in allocate()
-//    if (writer == null) {
-//      try {
-//        writer = new PrintWriter(new FileWriter(file));
-//      } catch (IOException e) {
-//        throw new RuntimeException(e);  // java 1.4+
-//      }
-//      writeHeader();
-//    }
+	
+    if (writer == null) {
+	  try {
+	    writer = new PrintWriter(new FileWriter(file));
+	  } catch (IOException e) {
+	    throw new RuntimeException(e);  // java 1.4+
+	  }
+	  writeHeader();
+	}
  
     //pushMatrix();
   }
 
   public void endDraw(String path) {
 
-//	   for (int i=0; i<vertices.length; i++) {
-// 	    for (int j=0; j<vertices[i].length; j++) {
-//      	System.out.println("*" + vertices[i][j]);
-//	     }
-//   	}
-	//popMatrix();
-    
-    //writer.flush();
+	//	   for (int i=0; i<vertices.length; i++) {
+	// 	    for (int j=0; j<vertices[i].length; j++) {
+	//      	System.out.println("*" + vertices[i][j]);
+	//	     }
+	//   	}
+		//popMatrix();
+    writer.flush();
   }
-  public void endRecord()
-  {   
+
+  public void endRecord() {   
       endDraw();
       dispose(); 
   }
 
-  public void endRecord(String filePath)
-  {   
-      
+  public void endRecord(String filePath) {   
       setPath(filePath);
       endRecord();
   }
 
-  
   /**
    * Write a command on one line (as a String), then start a new line
    * and write out a formatted float. Available for anyone who wants to
@@ -173,18 +163,18 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void line(float x1, float y1, float x2, float y2) {
-    System.out.println("got a line: " + x1 + " " + y1 + " " + x2 + " " + y2);
+    //System.out.println("got a line: " + x1 + " " + y1 + " " + x2 + " " + y2);
   }
   
   public void ellipse(float x1, float y1, float w, float h) {
-    System.out.println("got an ellipse: " + x1 + " " + y1 + " " + w + " " + h);
+    //System.out.println("got an ellipse: " + x1 + " " + y1 + " " + w + " " + h);
   }
   
   public void rectImpl(float x1, float y1, float x2, float y2) {
     // x2,y2 are opposite corner points, not width and height
     // see PGraphics, line 2578 
-    System.out.println("got a rect: " + x1 + " " + y1 + " " + x2 + " " + y2);
-    this.transformMatrix.print();
+    //System.out.println("got a rect: " + x1 + " " + y1 + " " + x2 + " " + y2);
+    //this.transformMatrix.print();
       
     float[] x1y1 = new float[2];
     float[] x2y1 = new float[2];
@@ -196,30 +186,31 @@ public class HPGLGraphics extends PGraphics {
     this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
     this.transformMatrix.mult(new float[]{x1,y2}, x1y2);
       
-    System.out.println(x1y1[0] + " " + x1y1[1] + " " + x2y2[0] + " " + x2y2[1] );
+    //System.out.println(x1y1[0] + " " + x1y1[1] + " " + x2y2[0] + " " + x2y2[1] );
            
   }
+  
   public void beginShape() {
-    System.out.println("got a shape");
+    //System.out.println("got a shape");
   }
   
   public void beginShape(int kind) {
-    System.out.println("got a shape: " + kind);
+    //System.out.println("got a shape: " + kind);
 
 	   if (kind==LINE) {
-	     System.out.println("LINE");
+	     //System.out.println("LINE");
 	   }
 	   if (kind==RECT) {
-      System.out.println("RECT");
+         //System.out.println("RECT");
 	   }
   }
   
   public void endShape() {
-    System.out.println("shape ended");
+    //System.out.println("shape ended");
   }
   
   public void shape(PShape s){
-    System.out.println("got a shape");
+    //System.out.println("got a shape");
     
   }
   
@@ -227,7 +218,6 @@ public class HPGLGraphics extends PGraphics {
     System.out.println("got a vertex");
     //vertex(x,y,0);
   }
-
   
   // / MATRIX STACK - from GraphicsHPGL.java, gsn/src
 
@@ -270,7 +260,42 @@ public class HPGLGraphics extends PGraphics {
     this.transformMatrix.rotate(angle);
     //this.modelView.print();
   }
+  
+  public void dispose() {
+    System.out.println("file is: " + this.path);
+    System.out.println("size is: " + this.size);
+//    writeFooter();
+//
+    writer.flush();
+    writer.close();
+    writer = null;
+  }
 
+  // GENERAL METHODS
+
+  public boolean displayable() {
+    return false;
+  }
+
+  public boolean is2D() {
+    return true;
+  }
+
+  public boolean is3D() {
+	  return false;
+  }
+  
+  private void writeHeader() {
+	  writer.println("IN;");
+  }
+  
+  private void writeFooter() {
+  }
+  
+  public void resetMatrix(){
+  }
+  public void blendMode(int mode){
+  }
   
 }
 
