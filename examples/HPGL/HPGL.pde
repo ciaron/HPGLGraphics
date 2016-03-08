@@ -3,8 +3,8 @@ import hpglgraphics.*;
 void setup() {
   
   // HPGL (Roland DXY-1350A) coordinate ranges:
-  // A4 : 11040 x 7721 
-  // A3 : 16158 x 11040
+  // A4 : 11040 x  7721 (297mm x 210mm)
+  // A3 : 16158 x 11040 (420mm x 297mm)
   
   size(1104, 772, P2D);
   HPGLGraphics hpgl = (HPGLGraphics) createGraphics(width, height, HPGLGraphics.HPGL);
