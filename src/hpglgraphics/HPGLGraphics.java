@@ -31,6 +31,11 @@ public class HPGLGraphics extends PGraphics {
   private int MATRIX_STACK_DEPTH = 32;
   private int transformCount = 0;
   private PMatrix2D transformStack[] = new PMatrix2D[MATRIX_STACK_DEPTH];
+  
+  private int A4W = 11040;
+  private int A4H =  7721;
+  private int A3W = 16158;
+  private int A3H = 11040;
 	
   public final static String VERSION = "##library.prettyVersion##";
 
@@ -95,7 +100,7 @@ public class HPGLGraphics extends PGraphics {
   public void beginDraw() {
 	  
 	//resetMatrix();
-	System.out.println("beginDraw " + this.path);
+	//System.out.println("beginDraw " + this.width + " " + this.height);
 	
 	if (this.path == null) {
 	  throw new RuntimeException("call setPath() before recording begins!");
@@ -129,6 +134,7 @@ public class HPGLGraphics extends PGraphics {
 	//	     }
 	//   	}
 		//popMatrix();
+    writeFooter();
     writer.flush();
   }
 
@@ -164,10 +170,34 @@ public class HPGLGraphics extends PGraphics {
   
   public void line(float x1, float y1, float x2, float y2) {
     //System.out.println("got a line: " + x1 + " " + y1 + " " + x2 + " " + y2);
+    float[] x1y1 = new float[2];
+    float[] x2y2 = new float[2];
+    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
+    this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
+    x1y1 = scaleToPaper(x1y1);
+    x2y2 = scaleToPaper(x2y2);
+    
+    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+    writer.println("PU;");
+    
   }
   
   public void ellipse(float x1, float y1, float w, float h) {
-    //System.out.println("got an ellipse: " + x1 + " " + y1 + " " + w + " " + h);
+    
+    float[] x1y1 = new float[2];
+    float[] wh = new float[2];
+    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
+    this.transformMatrix.mult(new float[]{w,h}, wh);
+    x1y1 = scaleToPaper(x1y1);
+    wh = scaleToPaper(wh);
+    
+    if (Math.abs(w-h) < 0.1) {
+      // draw a circle, need to figure out ellipses later (TODO)
+      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+      writer.println("CI"+wh[0]/2.0+";");
+      writer.println("PU;");
+    }
   }
   
   public void rectImpl(float x1, float y1, float x2, float y2) {
@@ -185,9 +215,45 @@ public class HPGLGraphics extends PGraphics {
     this.transformMatrix.mult(new float[]{x2,y1}, x2y1);
     this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
     this.transformMatrix.mult(new float[]{x1,y2}, x1y2);
-      
-    //System.out.println(x1y1[0] + " " + x1y1[1] + " " + x2y2[0] + " " + x2y2[1] );
+    
+    x1y1 = scaleToPaper(x1y1);
+    x2y1 = scaleToPaper(x2y1);
+    x1y2 = scaleToPaper(x1y2);
+    x2y2 = scaleToPaper(x2y2);
+    
+    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PD" + x2y1[0] + "," + x2y1[1] +
+                    "," + x2y2[0] + "," + x2y2[1] +
+                    "," + x1y2[0] + "," + x1y2[1] +
+                    "," + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PU;");
            
+  }
+  
+  private float[] scaleToPaper(float[] xy) {
+    float[] xy1 =  new float[xy.length];
+    
+    float W=(float) 0.0;
+    float H=(float) 0.0;
+    
+    if (this.size == "A3") {
+      W=A3W; H=A3H;
+    } else if (this.size == "A4"){
+      W=A4W; H=A4H;
+    }
+    
+    // scale x-coordinate
+    xy1[0] = this.map(xy[0], 0, this.width, 0, W);
+    
+    // scale and flip y-coord (origin is reversed vis-a-vis Processing canvas)
+    xy1[1] = H-this.map(xy[1], 0, this.height, 0, H);
+    
+    return xy1;
+    
+  }
+  
+  private float map(float val, float minval, float maxval, float minrange, float maxrange) {
+    return (maxrange-minrange)*val / (maxval-minval);
   }
   
   public void beginShape() {
@@ -262,10 +328,10 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void dispose() {
-    System.out.println("file is: " + this.path);
-    System.out.println("size is: " + this.size);
-//    writeFooter();
-//
+    //System.out.println("file is: " + this.path);
+    //System.out.println("size is: " + this.size);
+    //writeFooter();
+
     writer.flush();
     writer.close();
     writer = null;
@@ -286,10 +352,11 @@ public class HPGLGraphics extends PGraphics {
   }
   
   private void writeHeader() {
-	  writer.println("IN;");
+	   writer.println("IN;SP1;");
   }
   
   private void writeFooter() {
+    writer.println("PU0,0;");
   }
   
   public void resetMatrix(){
