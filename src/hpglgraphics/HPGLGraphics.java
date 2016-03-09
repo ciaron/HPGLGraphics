@@ -36,6 +36,8 @@ public class HPGLGraphics extends PGraphics {
   private int A4H =  7721;
   private int A3W = 16158;
   private int A3H = 11040;
+  
+  private float[][] shapeVertices;
 	
   public final static String VERSION = "##library.prettyVersion##";
 
@@ -96,25 +98,29 @@ public class HPGLGraphics extends PGraphics {
    	}
   }
 
+  public void selectPen(int pen) {
+    writer.println("SP"+pen+";");    
+  }
+  
   public void beginDraw() {
 	
-	if (this.path == null) {
-	  throw new RuntimeException("call setPath() before recording begins!");
-	}
+   	if (this.path == null) {
+   	  throw new RuntimeException("call setPath() before recording begins!");
+  	 }
 	
-	if (this.size == null) {
-		this.size="A4";
-		System.out.println("setPaperSize undefined: defaulting to A4");
-	}
+	   if (this.size == null) {
+		    this.size="A4";
+		    System.out.println("setPaperSize undefined: defaulting to A4");
+   	}
 	
     if (writer == null) {
-	  try {
-	    writer = new PrintWriter(new FileWriter(file));
-	  } catch (IOException e) {
-	    throw new RuntimeException(e);  // java 1.4+
-	  }
-	  writeHeader();
-	}
+	     try {
+	       writer = new PrintWriter(new FileWriter(file));
+	     } catch (IOException e) {
+	       throw new RuntimeException(e);  // java 1.4+
+	     }
+	     writeHeader();
+   	}
  
     //pushMatrix();
   }
@@ -136,48 +142,103 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void beginShape() {
-	    System.out.println("got a shape");
+	    //System.out.println("got a shape");
+	    
+	    shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
   }
 	  
   public void beginShape(int kind) {
-    System.out.println("got a shape: " + kind);
-    System.out.println(vertices.length);
+    //System.out.println("got a shape: " + kind);
+    shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
+    //System.out.println(vertices.length);
     shape = kind;
     vertexCount = 0;
   }
-	  
-  public void endShape(int mode) {
+  
+  public void endShape() {
+    endShape(OPEN);
+  }
+  
+  public void endShape(int mode){
+    //System.out.println("endShape.");
     
-	switch(shape) {
+    int stop = vertexCount - 1;
+    
+    writer.println("PU" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+    
+    for (int i=1; i<=stop; i++){
+      writer.println("PD" + shapeVertices[i][0] + "," + shapeVertices[i][1] + ";");
+    }
+    
+    if (mode==CLOSE){
+      writer.println("PD" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+    }
+    
+    writer.println("PU;");
+    
+    vertexCount = 0;
+    shapeVertices = null;
+  }
+  
+  /*public void endShape(int mode) {
+    System.out.println("endShape, mode: " + mode);
+    
+   	switch(shape) {
       case TRIANGLE:
         {
           System.out.println("TRIANGLE " + vertexCount);
           for (int i=0; i<vertexCount; i++) {
-        	  System.out.println(vertices[i][0]);
-        	  System.out.println(vertices[i][1]);
+        	   System.out.println(vertices[i][0]);
+        	   System.out.println(vertices[i][1]);
           }
         }
         break;
+        
       case QUAD:
-	    {
-	      System.out.println("QUAD " + vertexCount);
-	    }
-	    break;
-	} // switch
+	       {
+	         System.out.println("QUAD " + vertexCount);
+	       }
+	       break;
+	       
+   	} // switch
   }
-  
-  public void shape(PShape s){
+ */ 
+  /*public void shape(PShape s){
     System.out.println("got a shape(): " + s);
   }
-  
+  */
   public void vertex(float x, float y) {
-	// Store vertices here? TODO See MeshExport.java
+	   // Store vertices here? TODO See MeshExport.java
     vertexCount++;
+    //System.out.println(vertices.length + " " + vertexCount);
+    
+    // check if shapeVertices is big enough, extend if necessary.
+    // via OBJExport (MeshExport.java)
+    if(vertexCount >= shapeVertices.length) {
+      float newVertices[][] = new float[shapeVertices.length*2][VERTEX_FIELD_COUNT];
+      System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
+      shapeVertices = newVertices;
+    }
+    float[] xy = new float[2];
+          
+    // get the transformed/scaled points
+    xy = getNewXY(x, y);
+    shapeVertices[vertexCount-1][0] = xy[0];
+    shapeVertices[vertexCount-1][1] = xy[1];
+    //System.out.println("X: " + xy[0] + " Y: " + xy[1]);
   }
   
   // UTILITIES
   
+  /**
+   * This method return x,y coordinates converted to plotter coordinates
+   * It also flip the y-coordinate to match Processing axis orientation.
+   * 
+   * @example HPGL
+   * @param float[] xy: A 2-array with the x and y parameters
+   */
   private float[] scaleToPaper(float[] xy) {
+    
     float[] xy1 =  new float[xy.length];
     
     float W=(float) 0.0;
@@ -203,18 +264,17 @@ public class HPGLGraphics extends PGraphics {
     return (maxrange-minrange)*val / (maxval-minval);
   }
   
-  private float[] getNewXY (float x, float y){
+  private float[] getNewXY(float x, float y){
 	  float[] xy = new float[2];
 	  this.transformMatrix.mult(new float[]{x,y}, xy);
 	  xy = scaleToPaper(xy);
 	  return xy;
   }
   
-  private float[] getNewWH (float w, float h){
-	  float[] wh = {w,h};
-	  //this.transformMatrix.mult(new float[]{x,y}, xy);
-	  wh = scaleToPaper(wh);
-	  return wh;
+  private float[] getNewWH(float w, float h){
+	   float[] wh = {w,h};
+	   wh = scaleToPaper(wh);
+	   return wh;
   }
   
   // END UTILITIES
@@ -223,16 +283,16 @@ public class HPGLGraphics extends PGraphics {
   
   public void line(float x1, float y1, float x2, float y2) {
 
-	  float[] x1y1 = new float[2];
-      float[] x2y2 = new float[2];
+	   float[] x1y1 = new float[2];
+    float[] x2y2 = new float[2];
       
-      // get the transformed/scaled points
-      x1y1 = getNewXY(x1, y1);
-      x2y2 = getNewXY(x2, y2);
+    // get the transformed/scaled points
+    x1y1 = getNewXY(x1, y1);
+    x2y2 = getNewXY(x2, y2);
       
-      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-      writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
-      writer.println("PU;");
+    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+    writer.println("PU;");
 	  
   }
   
