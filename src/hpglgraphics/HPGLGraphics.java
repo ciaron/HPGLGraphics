@@ -23,7 +23,7 @@ public class HPGLGraphics extends PGraphics {
   
   /** Stores all the transformations */
   /* from HPGL by gsn */
-  public PMatrix2D transformMatrix;
+  private PMatrix2D transformMatrix;
 
   private boolean matricesAllocated = false;
   //private boolean resize = false;
@@ -44,9 +44,9 @@ public class HPGLGraphics extends PGraphics {
    * initialize and start the Library.
    * 
    * @example HPGL
-   * @param none
+   * 
    */
-  //public HPGLGraphics(String type){
+
   public HPGLGraphics(){
     
     welcome();
@@ -58,7 +58,6 @@ public class HPGLGraphics extends PGraphics {
       matricesAllocated = true;
      }
   }
-
   
   private void welcome() {
 	   System.out.println("##library.name## ##library.prettyVersion## by ##author##");
@@ -69,7 +68,7 @@ public class HPGLGraphics extends PGraphics {
    * match either A3 or A4 dimensions (only these supported now)
    * 
    * @example HPGL
-   * @param size
+   * @param size String: "A3" or "A4", depending on the intended plot size
    */
   
   public void setPaperSize(String size) {
@@ -81,7 +80,7 @@ public class HPGLGraphics extends PGraphics {
    * Must be called from the Processing sketch
    * 
    * @example HPGL
-   * @param path
+   * @param path String: name of file to save to
    */
   
   public void setPath(String path) {
@@ -98,9 +97,6 @@ public class HPGLGraphics extends PGraphics {
   }
 
   public void beginDraw() {
-	  
-	//resetMatrix();
-	//System.out.println("beginDraw " + this.width + " " + this.height);
 	
 	if (this.path == null) {
 	  throw new RuntimeException("call setPath() before recording begins!");
@@ -110,9 +106,6 @@ public class HPGLGraphics extends PGraphics {
 		this.size="A4";
 		System.out.println("setPaperSize undefined: defaulting to A4");
 	}
-	
-    // have to create file object here, because the name isn't yet
-    // available in allocate()
 	
     if (writer == null) {
 	  try {
@@ -128,12 +121,6 @@ public class HPGLGraphics extends PGraphics {
 
   public void endDraw(String path) {
 
-	//	   for (int i=0; i<vertices.length; i++) {
-	// 	    for (int j=0; j<vertices[i].length; j++) {
-	//      	System.out.println("*" + vertices[i][j]);
-	//	     }
-	//   	}
-		//popMatrix();
     writeFooter();
     writer.flush();
   }
@@ -147,88 +134,48 @@ public class HPGLGraphics extends PGraphics {
       setPath(filePath);
       endRecord();
   }
-
-  /**
-   * Write a command on one line (as a String), then start a new line
-   * and write out a formatted float. Available for anyone who wants to
-   * insert additional commands into the HPGL stream.
-   */
-  public void write(String cmd, float val) {
-    writer.println(cmd);
-    // Don't number format, will cause trouble on systems that aren't en-US
-    // http://dev.processing.org/bugs/show_bug.cgi?id=495
-    writer.println(val);
+  
+  public void beginShape() {
+	    System.out.println("got a shape");
   }
-
-  /**
-   * Write a line to the HPGL file. Available for anyone who wants to
-   * insert additional commands into the HPGL stream.
-   */
-  public void println(String what) {
-    writer.println(what);
+	  
+  public void beginShape(int kind) {
+    System.out.println("got a shape: " + kind);
+    System.out.println(vertices.length);
+    shape = kind;
+    vertexCount = 0;
+  }
+	  
+  public void endShape(int mode) {
+    
+	switch(shape) {
+      case TRIANGLE:
+        {
+          System.out.println("TRIANGLE " + vertexCount);
+          for (int i=0; i<vertexCount; i++) {
+        	  System.out.println(vertices[i][0]);
+        	  System.out.println(vertices[i][1]);
+          }
+        }
+        break;
+      case QUAD:
+	    {
+	      System.out.println("QUAD " + vertexCount);
+	    }
+	    break;
+	} // switch
   }
   
-  public void line(float x1, float y1, float x2, float y2) {
-    //System.out.println("got a line: " + x1 + " " + y1 + " " + x2 + " " + y2);
-    float[] x1y1 = new float[2];
-    float[] x2y2 = new float[2];
-    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
-    this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
-    x1y1 = scaleToPaper(x1y1);
-    x2y2 = scaleToPaper(x2y2);
-    
-    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-    writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
-    writer.println("PU;");
-    
+  public void shape(PShape s){
+    System.out.println("got a shape(): " + s);
   }
   
-  public void ellipse(float x1, float y1, float w, float h) {
-    
-    float[] x1y1 = new float[2];
-    float[] wh = new float[2];
-    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
-    this.transformMatrix.mult(new float[]{w,h}, wh);
-    x1y1 = scaleToPaper(x1y1);
-    wh = scaleToPaper(wh);
-    
-    if (Math.abs(w-h) < 0.1) {
-      // draw a circle, need to figure out ellipses later (TODO)
-      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-      writer.println("CI"+wh[0]/2.0+";");
-      writer.println("PU;");
-    }
+  public void vertex(float x, float y) {
+	// Store vertices here? TODO See MeshExport.java
+    vertexCount++;
   }
   
-  public void rectImpl(float x1, float y1, float x2, float y2) {
-    // x2,y2 are opposite corner points, not width and height
-    // see PGraphics, line 2578 
-    //System.out.println("got a rect: " + x1 + " " + y1 + " " + x2 + " " + y2);
-    //this.transformMatrix.print();
-      
-    float[] x1y1 = new float[2];
-    float[] x2y1 = new float[2];
-    float[] x2y2 = new float[2];
-    float[] x1y2 = new float[2];
-      
-    this.transformMatrix.mult(new float[]{x1,y1}, x1y1);
-    this.transformMatrix.mult(new float[]{x2,y1}, x2y1);
-    this.transformMatrix.mult(new float[]{x2,y2}, x2y2);
-    this.transformMatrix.mult(new float[]{x1,y2}, x1y2);
-    
-    x1y1 = scaleToPaper(x1y1);
-    x2y1 = scaleToPaper(x2y1);
-    x1y2 = scaleToPaper(x1y2);
-    x2y2 = scaleToPaper(x2y2);
-    
-    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-    writer.println("PD" + x2y1[0] + "," + x2y1[1] +
-                    "," + x2y2[0] + "," + x2y2[1] +
-                    "," + x1y2[0] + "," + x1y2[1] +
-                    "," + x1y1[0] + "," + x1y1[1] + ";");
-    writer.println("PU;");
-           
-  }
+  // UTILITIES
   
   private float[] scaleToPaper(float[] xy) {
     float[] xy1 =  new float[xy.length];
@@ -256,35 +203,81 @@ public class HPGLGraphics extends PGraphics {
     return (maxrange-minrange)*val / (maxval-minval);
   }
   
-  public void beginShape() {
-    //System.out.println("got a shape");
+  private float[] getNewXY (float x, float y){
+	  float[] xy = new float[2];
+	  this.transformMatrix.mult(new float[]{x,y}, xy);
+	  xy = scaleToPaper(xy);
+	  return xy;
   }
   
-  public void beginShape(int kind) {
-    //System.out.println("got a shape: " + kind);
+  private float[] getNewWH (float w, float h){
+	  float[] wh = {w,h};
+	  //this.transformMatrix.mult(new float[]{x,y}, xy);
+	  wh = scaleToPaper(wh);
+	  return wh;
+  }
+  
+  // END UTILITIES
+  
+  // DRAWING METHODS
+  
+  public void line(float x1, float y1, float x2, float y2) {
 
-	   if (kind==LINE) {
-	     //System.out.println("LINE");
-	   }
-	   if (kind==RECT) {
-         //System.out.println("RECT");
-	   }
+	  float[] x1y1 = new float[2];
+      float[] x2y2 = new float[2];
+      
+      // get the transformed/scaled points
+      x1y1 = getNewXY(x1, y1);
+      x2y2 = getNewXY(x2, y2);
+      
+      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+      writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+      writer.println("PU;");
+	  
   }
   
-  public void endShape() {
-    //System.out.println("shape ended");
-  }
-  
-  public void shape(PShape s){
-    //System.out.println("got a shape");
+  public void ellipse(float x, float y, float w, float h) {
     
+    float[] xy = new float[2];
+    float[] wh = new float[2];
+    
+    // get the transformed/scaled points
+    xy = getNewXY(x, y);
+    // get scaled width and height
+    wh = getNewWH(w, h);
+    
+    if (Math.abs(w-h) < 0.1) {
+      // draw a circle, need to figure out ellipses later (TODO)
+      writer.println("PU" + xy[0] + "," + xy[1] + ";");
+      writer.println("CI"+wh[0]/2.0+";");
+      writer.println("PU;");
+    }
   }
   
-  public void vertex(float x, float y) {
-    System.out.println("got a vertex");
-    //vertex(x,y,0);
+  public void rectImpl(float x1, float y1, float x2, float y2) {
+    // x2,y2 are opposite corner points, not width and height
+    // see PGraphics, line 2578 
+      
+    float[] x1y1 = new float[2];
+    float[] x2y1 = new float[2];
+    float[] x2y2 = new float[2];
+    float[] x1y2 = new float[2];
+
+    // get the transformed/scaled points    
+    x1y1 = getNewXY(x1,y1);
+    x2y1 = getNewXY(x2,y1);
+    x1y2 = getNewXY(x1,y2);
+    x2y2 = getNewXY(x2,y2);
+    
+    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PD" + x2y1[0] + "," + x2y1[1] +
+                    "," + x2y2[0] + "," + x2y2[1] +
+                    "," + x1y2[0] + "," + x1y2[1] +
+                    "," + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("PU;");
+           
   }
-  
+
   // / MATRIX STACK - from GraphicsHPGL.java, gsn/src
 
   public void pushMatrix() {
@@ -348,7 +341,37 @@ public class HPGLGraphics extends PGraphics {
   }
 
   public boolean is3D() {
-	  return false;
+	  return true;
+  }
+  
+  public void resetMatrix(){
+  }
+  public void blendMode(int mode){
+  }
+  
+  // WRITER METHODS
+
+  /**
+   * Write a command on one line (as a String), then start a new line
+   * and write out a formatted float. Available for anyone who wants to
+   * insert additional commands into the HPGL stream.
+   * @param cmd HPGL command
+   * @param val HPGL parameter
+   */
+  public void write(String cmd, float val) {
+    writer.println(cmd);
+    // Don't number format, will cause trouble on systems that aren't en-US
+    // http://dev.processing.org/bugs/show_bug.cgi?id=495
+    writer.println(val);
+  }
+
+  /**
+   * Write a line to the HPGL file. Available for anyone who wants to
+   * insert additional commands into the HPGL stream.
+   * @param what String to write
+   */
+  public void println(String what) {
+    writer.println(what);
   }
   
   private void writeHeader() {
@@ -359,10 +382,6 @@ public class HPGLGraphics extends PGraphics {
     writer.println("PU0,0;");
   }
   
-  public void resetMatrix(){
-  }
-  public void blendMode(int mode){
-  }
   
 }
 
