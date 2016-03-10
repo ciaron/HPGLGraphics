@@ -121,8 +121,6 @@ public class HPGLGraphics extends PGraphics {
 	     }
 	     writeHeader();
    	}
- 
-    //pushMatrix();
   }
 
   public void endDraw(String path) {
@@ -142,9 +140,7 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void beginShape() {
-	    //System.out.println("got a shape");
-	    
-	    shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
+	   shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
   }
 	  
   public void beginShape(int kind) {
@@ -160,7 +156,6 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void endShape(int mode){
-    //System.out.println("endShape.");
     
     int stop = vertexCount - 1;
     
@@ -170,12 +165,12 @@ public class HPGLGraphics extends PGraphics {
       writer.println("PD" + shapeVertices[i][0] + "," + shapeVertices[i][1] + ";");
     }
     
-    if (mode==CLOSE){
+    if (mode==CLOSE) {
+      // Pen down to starting point
       writer.println("PD" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
     }
     
     writer.println("PU;");
-    
     vertexCount = 0;
     shapeVertices = null;
   }
@@ -208,9 +203,8 @@ public class HPGLGraphics extends PGraphics {
   }
   */
   public void vertex(float x, float y) {
-	   // Store vertices here? TODO See MeshExport.java
+	   
     vertexCount++;
-    //System.out.println(vertices.length + " " + vertexCount);
     
     // check if shapeVertices is big enough, extend if necessary.
     // via OBJExport (MeshExport.java)
@@ -219,20 +213,21 @@ public class HPGLGraphics extends PGraphics {
       System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
       shapeVertices = newVertices;
     }
+    
     float[] xy = new float[2];
           
-    // get the transformed/scaled points
+    // get the transformed/scaled point
     xy = getNewXY(x, y);
     shapeVertices[vertexCount-1][0] = xy[0];
     shapeVertices[vertexCount-1][1] = xy[1];
-    //System.out.println("X: " + xy[0] + " Y: " + xy[1]);
+
   }
   
   // UTILITIES
   
   /**
    * This method return x,y coordinates converted to plotter coordinates
-   * It also flip the y-coordinate to match Processing axis orientation.
+   * It also flips the y-coordinate to match Processing axis orientation.
    * 
    * @example HPGL
    * @param float[] xy: A 2-array with the x and y parameters
@@ -270,7 +265,7 @@ public class HPGLGraphics extends PGraphics {
 	  xy = scaleToPaper(xy);
 	  return xy;
   }
-  
+
   private float[] getNewWH(float w, float h){
 	   float[] wh = {w,h};
 	   wh = scaleToPaper(wh);
@@ -296,7 +291,7 @@ public class HPGLGraphics extends PGraphics {
 	  
   }
   
-  public void ellipse(float x, float y, float w, float h) {
+  public void ellipseImpl(float x, float y, float w, float h) {
     
     float[] xy = new float[2];
     float[] wh = new float[2];
@@ -306,12 +301,73 @@ public class HPGLGraphics extends PGraphics {
     // get scaled width and height
     wh = getNewWH(w, h);
     
+    // if width and height are close enough, assume a circle
     if (Math.abs(w-h) < 0.1) {
-      // draw a circle, need to figure out ellipses later (TODO)
       writer.println("PU" + xy[0] + "," + xy[1] + ";");
       writer.println("CI"+wh[0]/2.0+";");
       writer.println("PU;");
+    } else {
+      // draw an ellipse
     }
+    
+  }
+  public void arc(float x, float y, float w, float h, float start, float stop) {
+    System.out.println("arc");
+
+    arc(x,y,w,h,start,stop,OPEN);
+  }
+  
+  public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
+    float[] xy   = new float[2];
+    float[] x1y1 = new float[2];
+    float[] x2y2 = new float[2];
+    //float[] wh   = new float[2];
+    
+    double x1, y1, x2, y2;
+    
+    start = TWO_PI - start;
+    stop = TWO_PI - stop;
+    
+    x1 = x + w/2 * Math.cos(start);
+    y1 = y + w/2 * Math.sin(start);
+    
+    x2 = x + w/2 * Math.cos(stop);
+    y2 = y + w/2 * Math.sin(stop);
+    
+    // get the transformations:
+    xy = getNewXY(x, y);
+    x1y1 = getNewXY((float)x1, (float) y1);
+    x2y2 = getNewXY((float)x2, (float) y2);
+    //wh = getNewWH(w, h);
+    
+    // convert radians to degrees, clockwise to anti-clockwise
+    float startd = (float) (start*180.0/PI);
+    float stopd  = (float) (stop*180.0/PI);
+    
+    if (Math.abs(w-h) < 0.1) {
+      
+      //System.out.println(x1y1[0]+ " " +x1y1[1]+ " "+x2y2[0]+ " "+x2y2[1]+ " "+ start + " " + stop);
+      
+      // draw start point circle (debug)
+      writer.println("SP3;");
+      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+      writer.println("CI200.0;");
+      // draw stop point circle (debug)
+      writer.println("SP2;");
+      writer.println("PU" + x2y2[0] + "," + x2y2[1] + ";");
+      writer.println("CI200.0;");
+
+      // draw the arc
+      writer.println("SP1;");
+      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+      writer.println("PD;AA"+xy[0]+","+xy[1]+","+(startd-stopd)+";");
+      
+      //writer.println("PU" + xy[0] + "," + xy[1] + ";");
+      //writer.println("CI200.0;");
+
+      writer.println("PU;");
+    }
+    
   }
   
   public void rectImpl(float x1, float y1, float x2, float y2) {
