@@ -89,17 +89,17 @@ public class HPGLGraphics extends PGraphics {
    * @param path String: name of file to save to
    */
   public void setPath(String path) {
-
-    this.path = parent.sketchPath(path);
     
+    this.path = parent.sketchPath(path);
    	if (path != null) {
-	     file = new File(path);
+	     file = new File(this.path);
+	     
    	  //if (!file.isAbsolute()) file = null;
    	}
-	if (file == null) {
+	   if (file == null) {
 //	     throw new RuntimeException("HPGL export requires an absolute path " +
 //	                                "for the location of the output file.");
-		throw new RuntimeException("Something went wrong trying to create file "+this.path);
+		    throw new RuntimeException("Something went wrong trying to create file "+this.path);
    	}
   }
   
@@ -289,9 +289,9 @@ public class HPGLGraphics extends PGraphics {
   }
 
   private double[] getNewWH(double w, double h){
-	double[] wh = {w,h};
-	wh = scaleToPaper(wh);
-	return wh;
+   	double[] wh = {w,h};
+   	wh = scaleToPaper(wh);
+   	return wh;
   }
   
   private double getChordAngle() {
@@ -327,8 +327,8 @@ public class HPGLGraphics extends PGraphics {
   
   public void ellipseImpl(float x, float y, float w, float h) {
     
-	double[] xy = new double[2];
-	double[] wh = new double[2];
+	   double[] xy = new double[2];
+	   double[] wh = new double[2];
     
     xy = getNewXY(x, y); // get the transformed/scaled points
     wh = getNewWH(w, h); // scaled width and height
@@ -349,9 +349,9 @@ public class HPGLGraphics extends PGraphics {
   }  
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
 	
-	double[] xy   = new double[2];
-	double[] x1y1 = new double[2];
-	double[] x2y2 = new double[2];
+	   double[] xy   = new double[2];
+   	double[] x1y1 = new double[2];
+   	double[] x2y2 = new double[2];
     double   x1, y1, x2, y2;
     
     x1 = x + w/2 * Math.cos(start);
@@ -405,9 +405,9 @@ public class HPGLGraphics extends PGraphics {
     // see PGraphics, line 2578 
       
     double[] x1y1 = new double[2];
-	double[] x2y1 = new double[2];
-	double[] x2y2 = new double[2];
-	double[] x1y2 = new double[2];
+   	double[] x2y1 = new double[2];
+	   double[] x2y2 = new double[2];
+	   double[] x1y2 = new double[2];
 
     // get the transformed/scaled points    
     x1y1 = getNewXY(x1,y1);
