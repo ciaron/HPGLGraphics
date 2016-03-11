@@ -32,6 +32,7 @@ public class HPGLGraphics extends PGraphics {
   private int transformCount = 0;
   private PMatrix2D transformStack[] = new PMatrix2D[MATRIX_STACK_DEPTH];
   
+  private double chordangle = 5.0; // HPGL default is 5 degrees
   private int A4W = 11040;
   private int A4H =  7721;
   private int A3W = 16158;
@@ -226,7 +227,7 @@ public class HPGLGraphics extends PGraphics {
   // UTILITIES
   
   /**
-   * This method return x,y coordinates converted to plotter coordinates
+   * This method returns x,y coordinates converted to plotter coordinates
    * It also flips the y-coordinate to match Processing axis orientation.
    * 
    * @example HPGL
@@ -272,23 +273,35 @@ public class HPGLGraphics extends PGraphics {
 	   return wh;
   }
   
+  private double getChordAngle() {
+	  return chordangle;
+  }
+  
+  /**
+   * This method sets the chord angle used for drawing arcs, circles and (TODO) ellipses.
+   * 
+   * @example hpglArc
+   * @param float ca: chord angle (degrees)
+   */
+  public void setChordAngle(float ca) {
+	  chordangle=ca;
+  }
+  
   // END UTILITIES
   
   // DRAWING METHODS
   
   public void line(float x1, float y1, float x2, float y2) {
 
-	   float[] x1y1 = new float[2];
+    float[] x1y1 = new float[2];
     float[] x2y2 = new float[2];
       
-    // get the transformed/scaled points
-    x1y1 = getNewXY(x1, y1);
-    x2y2 = getNewXY(x2, y2);
+    x1y1 = getNewXY(x1, y1); // get the transformed/scaled points
+    x2y2 = getNewXY(x2, y2); // get the transformed/scaled points
       
     writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
     writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
     writer.println("PU;");
-	  
   }
   
   public void ellipseImpl(float x, float y, float w, float h) {
@@ -296,37 +309,30 @@ public class HPGLGraphics extends PGraphics {
     float[] xy = new float[2];
     float[] wh = new float[2];
     
-    // get the transformed/scaled points
-    xy = getNewXY(x, y);
-    // get scaled width and height
-    wh = getNewWH(w, h);
+    xy = getNewXY(x, y); // get the transformed/scaled points
+    wh = getNewWH(w, h); // scaled width and height
     
-    // if width and height are close enough, assume a circle
-    if (Math.abs(w-h) < 0.1) {
+    if (Math.abs(w-h) < 0.1) { // a circle
       writer.println("PU" + xy[0] + "," + xy[1] + ";");
-      writer.println("CI"+wh[0]/2.0+";");
+      writer.println("CI" + wh[0]/2.0 + "," + getChordAngle() + ";");
       writer.println("PU;");
     } else {
       // draw an ellipse
     }
-    
-  }
-  public void arc(float x, float y, float w, float h, float start, float stop) {
-    System.out.println("arc");
-
-    arc(x,y,w,h,start,stop,OPEN);
   }
   
+  // arcs
+  
+  public void arc(float x, float y, float w, float h, float start, float stop) {
+	arc(x,y,w,h,start,stop,OPEN);
+  }  
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
+	
     float[] xy   = new float[2];
     float[] x1y1 = new float[2];
     float[] x2y2 = new float[2];
-    //float[] wh   = new float[2];
     
     double x1, y1, x2, y2;
-    
-    start = TWO_PI - start;
-    stop = TWO_PI - stop;
     
     x1 = x + w/2 * Math.cos(start);
     y1 = y + w/2 * Math.sin(start);
@@ -334,36 +340,40 @@ public class HPGLGraphics extends PGraphics {
     x2 = x + w/2 * Math.cos(stop);
     y2 = y + w/2 * Math.sin(stop);
     
-    // get the transformations:
-    xy = getNewXY(x, y);
+    xy = getNewXY(x, y); // get the transformations:
     x1y1 = getNewXY((float)x1, (float) y1);
     x2y2 = getNewXY((float)x2, (float) y2);
-    //wh = getNewWH(w, h);
     
-    // convert radians to degrees, clockwise to anti-clockwise
-    float startd = (float) (start*180.0/PI);
-    float stopd  = (float) (stop*180.0/PI);
+    // convert radians to degrees, swap clockwise to anti-clockwise
+    float startd = 360 - (float) (start*180.0/PI);
+    float stopd  = 360 - (float) (stop*180.0/PI);
     
     if (Math.abs(w-h) < 0.1) {
       
-      //System.out.println(x1y1[0]+ " " +x1y1[1]+ " "+x2y2[0]+ " "+x2y2[1]+ " "+ start + " " + stop);
-      
-      // draw start point circle (debug)
+      /* // draw start point circle (debug)
       writer.println("SP3;");
       writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
       writer.println("CI200.0;");
       // draw stop point circle (debug)
       writer.println("SP2;");
       writer.println("PU" + x2y2[0] + "," + x2y2[1] + ";");
-      writer.println("CI200.0;");
+      writer.println("CI200.0;"); */
 
       // draw the arc
       writer.println("SP1;");
       writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-      writer.println("PD;AA"+xy[0]+","+xy[1]+","+(startd-stopd)+";");
+      writer.println("PD;AA"+xy[0]+","+xy[1]+","+(stopd-startd)+","+getChordAngle()+";");
       
-      //writer.println("PU" + xy[0] + "," + xy[1] + ";");
-      //writer.println("CI200.0;");
+      if (mode == CHORD) {
+    	  writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    	  writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+      }
+      
+      if (mode == PIE){
+    	  writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    	  writer.println("PD" + xy[0] + "," + xy[1] + ";");
+    	  writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+      }
 
       writer.println("PU;");
     }
@@ -394,18 +404,15 @@ public class HPGLGraphics extends PGraphics {
            
   }
 
-  // / MATRIX STACK - from GraphicsHPGL.java, gsn/src
+  // MATRIX STACK - from GraphicsHPGL.java, gsn/src
 
   public void pushMatrix() {
-	   //System.out.println("pushMatrix");
-	  
     if (transformCount == transformStack.length) {   
       throw new RuntimeException("pushMatrix() overflow");
     }
       
     transformStack[transformCount] = this.transformMatrix.get();
     transformCount++;
-   
   }
 
   public void popMatrix() {
@@ -422,11 +429,10 @@ public class HPGLGraphics extends PGraphics {
   }
 
   public void translate(float x, float y) {
-	   //System.out.println("translate");
-	   // PenUp, move by x, y.
-	   //this.modelView.print();
+    // PenUp, move by x, y.
+    //this.modelView.print();
     this.transformMatrix.translate(x, y);
-	   //this.modelView.print();
+    //this.modelView.print();
   }
   
   public void rotate(float angle) { 
@@ -444,25 +450,6 @@ public class HPGLGraphics extends PGraphics {
     writer.flush();
     writer.close();
     writer = null;
-  }
-
-  // GENERAL METHODS
-
-  public boolean displayable() {
-    return false;
-  }
-
-  public boolean is2D() {
-    return true;
-  }
-
-  public boolean is3D() {
-	  return true;
-  }
-  
-  public void resetMatrix(){
-  }
-  public void blendMode(int mode){
   }
   
   // WRITER METHODS
@@ -497,7 +484,14 @@ public class HPGLGraphics extends PGraphics {
   private void writeFooter() {
     writer.println("PU0,0;");
   }
-  
+
+  // GENERAL METHODS
+
+  public boolean displayable() { return false; }
+  public boolean is2D() { return true; }
+  public boolean is3D() { return true; }
+  public void resetMatrix(){ }
+  public void blendMode(int mode){ }
   
 }
 
