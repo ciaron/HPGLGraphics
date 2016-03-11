@@ -1,6 +1,7 @@
 package hpglgraphics;
 
 import java.io.*;
+
 import processing.core.*;
 
 /**
@@ -38,7 +39,7 @@ public class HPGLGraphics extends PGraphics {
   private int A3W = 16158;
   private int A3H = 11040;
   
-  private float[][] shapeVertices;
+  private double[][] shapeVertices;
 	
   public final static String VERSION = "##library.prettyVersion##";
 
@@ -51,7 +52,7 @@ public class HPGLGraphics extends PGraphics {
    */
 
   public HPGLGraphics(){
-    
+	super();
     welcome();
     
     if (!matricesAllocated) {   
@@ -60,6 +61,8 @@ public class HPGLGraphics extends PGraphics {
       this.transformMatrix = new PMatrix2D();
       matricesAllocated = true;
      }
+    
+    //parent.registerMethod("selectPen", this); //???
   }
   
   private void welcome() {
@@ -85,20 +88,28 @@ public class HPGLGraphics extends PGraphics {
    * @example HPGL
    * @param path String: name of file to save to
    */
-  
   public void setPath(String path) {
 
-    this.path = path;
+    this.path = parent.sketchPath(path);
+    
    	if (path != null) {
 	     file = new File(path);
-   	  if (!file.isAbsolute()) file = null;
+   	  //if (!file.isAbsolute()) file = null;
    	}
-	   if (file == null) {
-	     throw new RuntimeException("HPGL export requires an absolute path " +
-	                                "for the location of the output file.");
+	if (file == null) {
+//	     throw new RuntimeException("HPGL export requires an absolute path " +
+//	                                "for the location of the output file.");
+		throw new RuntimeException("Something went wrong trying to create file "+this.path);
    	}
   }
-
+  
+  /**
+   * This method selects plotter pen via the HPGL 'SP' instruction.
+   * Called from the Processing sketch.
+   * 
+   * @example HPGL
+   * @param pen : integer number of pen to select (depends on plotter)
+   */
   public void selectPen(int pen) {
     writer.println("SP"+pen+";");    
   }
@@ -141,12 +152,12 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void beginShape() {
-	   shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
+	   shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
   }
 	  
   public void beginShape(int kind) {
     //System.out.println("got a shape: " + kind);
-    shapeVertices = new float[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
+    shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
     //System.out.println(vertices.length);
     shape = kind;
     vertexCount = 0;
@@ -210,12 +221,12 @@ public class HPGLGraphics extends PGraphics {
     // check if shapeVertices is big enough, extend if necessary.
     // via OBJExport (MeshExport.java)
     if(vertexCount >= shapeVertices.length) {
-      float newVertices[][] = new float[shapeVertices.length*2][VERTEX_FIELD_COUNT];
+      double newVertices[][] = new double[shapeVertices.length*2][VERTEX_FIELD_COUNT];
       System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
       shapeVertices = newVertices;
     }
     
-    float[] xy = new float[2];
+    double[] xy = new double[2];
           
     // get the transformed/scaled point
     xy = getNewXY(x, y);
@@ -233,12 +244,12 @@ public class HPGLGraphics extends PGraphics {
    * @example HPGL
    * @param float[] xy: A 2-array with the x and y parameters
    */
-  private float[] scaleToPaper(float[] xy) {
+  private double[] scaleToPaper(double[] xy) {
     
-    float[] xy1 =  new float[xy.length];
+	double[] xy1 =  new double[xy.length];
     
-    float W=(float) 0.0;
-    float H=(float) 0.0;
+	double W=0.0;
+	double H=0.0;
     
     if (this.size == "A3") {
       W=A3W; H=A3H;
@@ -256,21 +267,31 @@ public class HPGLGraphics extends PGraphics {
     
   }
   
-  private float map(float val, float minval, float maxval, float minrange, float maxrange) {
+  private double map(double val, double minval, double maxval, double minrange, double maxrange) {
     return (maxrange-minrange)*val / (maxval-minval);
   }
   
-  private float[] getNewXY(float x, float y){
+  private double[] getNewXY(float x, float y){
 	  float[] xy = new float[2];
+	  double[] ret = new double[2];
+	  
 	  this.transformMatrix.mult(new float[]{x,y}, xy);
-	  xy = scaleToPaper(xy);
-	  return xy;
+	  
+	  // cast xy to double
+	  
+	  for (int i = 0 ; i < xy.length; i++)
+	  {
+	      ret[i] = (double) xy[i];
+	  }
+	  
+	  ret = scaleToPaper(ret);
+	  return ret;
   }
 
-  private float[] getNewWH(float w, float h){
-	   float[] wh = {w,h};
-	   wh = scaleToPaper(wh);
-	   return wh;
+  private double[] getNewWH(double w, double h){
+	double[] wh = {w,h};
+	wh = scaleToPaper(wh);
+	return wh;
   }
   
   private double getChordAngle() {
@@ -293,8 +314,8 @@ public class HPGLGraphics extends PGraphics {
   
   public void line(float x1, float y1, float x2, float y2) {
 
-    float[] x1y1 = new float[2];
-    float[] x2y2 = new float[2];
+    double[] x1y1 = new double[2];
+    double[] x2y2 = new double[2];
       
     x1y1 = getNewXY(x1, y1); // get the transformed/scaled points
     x2y2 = getNewXY(x2, y2); // get the transformed/scaled points
@@ -306,8 +327,8 @@ public class HPGLGraphics extends PGraphics {
   
   public void ellipseImpl(float x, float y, float w, float h) {
     
-    float[] xy = new float[2];
-    float[] wh = new float[2];
+	double[] xy = new double[2];
+	double[] wh = new double[2];
     
     xy = getNewXY(x, y); // get the transformed/scaled points
     wh = getNewWH(w, h); // scaled width and height
@@ -328,11 +349,10 @@ public class HPGLGraphics extends PGraphics {
   }  
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
 	
-    float[] xy   = new float[2];
-    float[] x1y1 = new float[2];
-    float[] x2y2 = new float[2];
-    
-    double x1, y1, x2, y2;
+	double[] xy   = new double[2];
+	double[] x1y1 = new double[2];
+	double[] x2y2 = new double[2];
+    double   x1, y1, x2, y2;
     
     x1 = x + w/2 * Math.cos(start);
     y1 = y + w/2 * Math.sin(start);
@@ -345,8 +365,8 @@ public class HPGLGraphics extends PGraphics {
     x2y2 = getNewXY((float)x2, (float) y2);
     
     // convert radians to degrees, swap clockwise to anti-clockwise
-    float startd = 360 - (float) (start*180.0/PI);
-    float stopd  = 360 - (float) (stop*180.0/PI);
+    double startd = 360 - start*180.0/PI;
+    double stopd  = 360 - stop*180.0/PI;
     
     if (Math.abs(w-h) < 0.1) {
       
@@ -384,10 +404,10 @@ public class HPGLGraphics extends PGraphics {
     // x2,y2 are opposite corner points, not width and height
     // see PGraphics, line 2578 
       
-    float[] x1y1 = new float[2];
-    float[] x2y1 = new float[2];
-    float[] x2y2 = new float[2];
-    float[] x1y2 = new float[2];
+    double[] x1y1 = new double[2];
+	double[] x2y1 = new double[2];
+	double[] x2y2 = new double[2];
+	double[] x1y2 = new double[2];
 
     // get the transformed/scaled points    
     x1y1 = getNewXY(x1,y1);
@@ -478,7 +498,7 @@ public class HPGLGraphics extends PGraphics {
   }
   
   private void writeHeader() {
-	   writer.println("IN;SP1;");
+	writer.println("IN;SP1;");
   }
   
   private void writeFooter() {
