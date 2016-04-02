@@ -246,10 +246,10 @@ public class HPGLGraphics extends PGraphics {
    */
   private double[] scaleToPaper(double[] xy) {
     
-	double[] xy1 =  new double[xy.length];
+   	double[] xy1 =  new double[xy.length];
     
-	double W=0.0;
-	double H=0.0;
+   	double W=0.0;
+   	double H=0.0;
     
     if (this.size == "A3") {
       W=A3W; H=A3H;
@@ -258,10 +258,16 @@ public class HPGLGraphics extends PGraphics {
     }
     
     // scale x-coordinate
-    xy1[0] = this.map(xy[0], 0, this.width, 0, W);
+    //xy1[0] = this.map(xy[0], 0, this.width, 0, W);
     
     // scale and flip y-coord (origin is reversed vis-a-vis Processing canvas)
-    xy1[1] = H-this.map(xy[1], 0, this.height, 0, H);
+    //xy1[1] = H-this.map(xy[1], 0, this.height, 0, H);
+
+    // replace the above with a ratio-preserving scaling.
+    // Assume width>height, i.e. always plotting in landscape orientation
+    double ratio = H/this.height;
+    xy1[0] = ratio * xy[0];
+    xy1[1] = H - ratio * xy[1];
     
     return xy1;
     
@@ -385,14 +391,15 @@ public class HPGLGraphics extends PGraphics {
       writer.println("PD;AA"+xy[0]+","+xy[1]+","+(stopd-startd)+","+getChordAngle()+";");
       
       if (mode == CHORD) {
-    	  writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-    	  writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+    	  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
+    	  //writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
       }
       
       if (mode == PIE){
-    	  writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-    	  writer.println("PD" + xy[0] + "," + xy[1] + ";");
-    	  writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+       writer.println("PD" + xy[0] + "," + xy[1] + ";");
+    	  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
+    	  
+    	  //writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
       }
 
       writer.println("PU;");
