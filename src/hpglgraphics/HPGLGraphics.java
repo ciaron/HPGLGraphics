@@ -27,7 +27,7 @@ public class HPGLGraphics extends PGraphics {
   private PMatrix2D transformMatrix;
 
   private boolean matricesAllocated = false;
-  //private boolean resize = false;
+  
   private String size;  // paper size, A3 or A4 for now
   private int MATRIX_STACK_DEPTH = 32;
   private int transformCount = 0;
@@ -47,22 +47,19 @@ public class HPGLGraphics extends PGraphics {
    * a Constructor, usually called in the setup() method in your sketch to
    * initialize and start the Library.
    * 
-   * @example HPGL
+   * @example demo
    * 
    */
 
   public HPGLGraphics(){
-	super();
+	   super();
     welcome();
     
     if (!matricesAllocated) {   
-      //System.out.println("HPGL: Allocating and setting up default matrices");
       // Init default matrix
       this.transformMatrix = new PMatrix2D();
       matricesAllocated = true;
      }
-    
-    //parent.registerMethod("selectPen", this); //???
   }
   
   private void welcome() {
@@ -73,7 +70,7 @@ public class HPGLGraphics extends PGraphics {
    * This method sets the plotter output size. Used to scale the Processing sketch to
    * match either A3 or A4 dimensions (only these supported now)
    * 
-   * @example HPGL
+   * @example demo
    * @param size String: "A3" or "A4", depending on the intended plot size
    */
   
@@ -85,7 +82,7 @@ public class HPGLGraphics extends PGraphics {
    * This method sets the path and filename for the HPGL output.
    * Must be called from the Processing sketch
    * 
-   * @example HPGL
+   * @example demo
    * @param path String: name of file to save to
    */
   public void setPath(String path) {
@@ -93,12 +90,9 @@ public class HPGLGraphics extends PGraphics {
     this.path = parent.sketchPath(path);
    	if (path != null) {
 	     file = new File(this.path);
-	     
-   	  //if (!file.isAbsolute()) file = null;
+
    	}
 	   if (file == null) {
-//	     throw new RuntimeException("HPGL export requires an absolute path " +
-//	                                "for the location of the output file.");
 		    throw new RuntimeException("Something went wrong trying to create file "+this.path);
    	}
   }
@@ -154,11 +148,15 @@ public class HPGLGraphics extends PGraphics {
   public void beginShape() {
 	   shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
   }
-	  
+  
+  /**
+   * This method sets the chord angle (in degrees) used for drawing arcs, circles and ellipses.
+   * 
+   * @example shapes
+   * @param int kind
+   */
   public void beginShape(int kind) {
-    //System.out.println("got a shape: " + kind);
     shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
-    //System.out.println(vertices.length);
     shape = kind;
     vertexCount = 0;
   }
@@ -211,9 +209,11 @@ public class HPGLGraphics extends PGraphics {
   }
  */ 
   /*public void shape(PShape s){
+
     System.out.println("got a shape(): " + s);
   }
   */
+  
   public void vertex(float x, float y) {
 	   
     vertexCount++;
@@ -241,7 +241,7 @@ public class HPGLGraphics extends PGraphics {
    * This method returns x,y coordinates converted to plotter coordinates
    * It also flips the y-coordinate to match Processing axis orientation.
    * 
-   * @example HPGL
+   * @example demo
    * @param float[] xy: A 2-array with the x and y parameters
    */
   private double[] scaleToPaper(double[] xy) {
@@ -256,18 +256,10 @@ public class HPGLGraphics extends PGraphics {
     } else if (this.size == "A4"){
       W=A4W; H=A4H;
     }
-    
-    // scale x-coordinate
-    //xy1[0] = this.map(xy[0], 0, this.width, 0, W);
-    
-    // scale and flip y-coord (origin is reversed vis-a-vis Processing canvas)
-    //xy1[1] = H-this.map(xy[1], 0, this.height, 0, H);
 
-    // replace the above with a ratio-preserving scaling.
     // Assume width>height, i.e. always plotting in landscape orientation
     double ratio = H/this.height;
     xy1[0] = ratio * xy[0];
-    //xy1[1] = H - ratio * xy[1];
     xy1[1] = ratio * xy[1];
     
     return xy1;
@@ -279,28 +271,28 @@ public class HPGLGraphics extends PGraphics {
 //  }
 
   private double[] getNewXY(float x, float y){
-	  float[] xy = new float[2];
-	  double[] ret = new double[2];
+ 	  float[] xy = new float[2];
+	   double[] ret = new double[2];
 	  
-	  double W=0.0;
-	  double H=0.0;
+	   double W=0.0;
+	   double H=0.0;
 	    
-	  if (this.size == "A3") {
-	    W=A3W; H=A3H;
-	  } else if (this.size == "A4"){
-	    W=A4W; H=A4H;
-	  }
+	   if (this.size == "A3") {
+	     W=A3W; H=A3H;
+	   } else if (this.size == "A4"){
+	     W=A4W; H=A4H;
+	   }
 	  
-	  this.transformMatrix.mult(new float[]{x,y}, xy);
+	   this.transformMatrix.mult(new float[]{x,y}, xy);
 	  
-	  for (int i = 0 ; i < xy.length; i++)
-	  {
-	      ret[i] = (double) xy[i];
-	  }
+	   for (int i = 0 ; i < xy.length; i++) {
+	     ret[i] = (double) xy[i];
+	   }
 	  
-	  ret = scaleToPaper(ret);
-	  ret[1] = H-ret[1];
-	  return ret;
+	   ret = scaleToPaper(ret);
+	   ret[1] = H-ret[1];
+	   
+	   return ret;
   }
 
   private double[] getNewWH(double w, double h){
@@ -318,13 +310,13 @@ public class HPGLGraphics extends PGraphics {
   }
   
   /**
-   * This method sets the chord angle (in degrees) used for drawing arcs, circles and (TODO) ellipses.
+   * This method sets the chord angle (in degrees) used for drawing arcs, circles and ellipses.
    * 
-   * @example hpglArc
+   * @example arc_test
    * @param float ca: chord angle (degrees)
    */
   public void setChordAngle(float ca) {
-	  chordangle=ca;
+	   chordangle=ca;
   }
   
   // END UTILITIES
@@ -364,8 +356,6 @@ public class HPGLGraphics extends PGraphics {
     } else {
     	
       // draw an ellipse
-      //double initx = xy[0] + wh[0]/2.0 * Math.cos(0.0);
-      //double inity = xy[1] + wh[1]/2.0 * Math.sin(0.0);
       double initx = x + w/2.0 * Math.cos(0.0);
       double inity = y + h/2.0 * Math.sin(0.0);
       initxy = getNewXY((float)initx, (float)inity);
@@ -375,9 +365,7 @@ public class HPGLGraphics extends PGraphics {
       writer.println("PU" + initxy[0] + "," + initxy[1] + ";");
       
       for (double t=ca; t<360.0; t+=ca) {
-    	  
-       	//_x = xy[0] + wh[0]/2.0 * Math.cos(Math.toRadians(t));
-    	   //_y = xy[1] + wh[1]/2.0 * Math.sin(Math.toRadians(t));
+
     	   _x = x + w/2.0 * Math.cos(Math.toRadians(t));
         _y = y + h/2.0 * Math.sin(Math.toRadians(t));
     	
@@ -392,20 +380,18 @@ public class HPGLGraphics extends PGraphics {
       
       writer.println("PD" + initxy[0] + "," + initxy[1] + ";");
       writer.println("PU;");
-      
     }
-    
   }
   
   // arcs
   
   public void arc(float x, float y, float w, float h, float start, float stop) {
-	arc(x,y,w,h,start,stop,OPEN);
+   	arc(x,y,w,h,start,stop,OPEN);
   }
   
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
 	
-	double[] xy   = new double[2];
+	   double[] xy   = new double[2];
    	double[] x1y1 = new double[2];
    	double[] x2y2 = new double[2];
     double   x1, y1, x2, y2;
@@ -451,8 +437,8 @@ public class HPGLGraphics extends PGraphics {
       
     double[] x1y1 = new double[2];
    	double[] x2y1 = new double[2];
-	double[] x2y2 = new double[2];
-	double[] x1y2 = new double[2];
+   	double[] x2y2 = new double[2];
+   	double[] x1y2 = new double[2];
 
     // get the transformed/scaled points    
     x1y1 = getNewXY(x1,y1);
@@ -501,17 +487,10 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void rotate(float angle) { 
-    //System.out.println("rotate");
-    //this.modelView.print();
     this.transformMatrix.rotate(angle);
-    //this.modelView.print();
   }
   
   public void dispose() {
-    //System.out.println("file is: " + this.path);
-    //System.out.println("size is: " + this.size);
-    //writeFooter();
-
     writer.flush();
     writer.close();
     writer = null;

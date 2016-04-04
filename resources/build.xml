@@ -144,9 +144,9 @@ ${line}
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
-		<copy todir="${project.bin.data}">
+	<!--	<copy todir="${project.bin.data}">
 			<fileset dir="${project.data}" excludes="README" />
-		</copy>
+		</copy> -->
 	</target>
 	
 	
