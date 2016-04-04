@@ -267,23 +267,31 @@ public class HPGLGraphics extends PGraphics {
     // Assume width>height, i.e. always plotting in landscape orientation
     double ratio = H/this.height;
     xy1[0] = ratio * xy[0];
-    xy1[1] = H - ratio * xy[1];
+    //xy1[1] = H - ratio * xy[1];
+    xy1[1] = ratio * xy[1];
     
     return xy1;
     
   }
   
-  private double map(double val, double minval, double maxval, double minrange, double maxrange) {
-    return (maxrange-minrange)*val / (maxval-minval);
-  }
-  
+//  private double map(double val, double minval, double maxval, double minrange, double maxrange) {
+//    return (maxrange-minrange)*val / (maxval-minval);
+//  }
+
   private double[] getNewXY(float x, float y){
 	  float[] xy = new float[2];
 	  double[] ret = new double[2];
 	  
-	  this.transformMatrix.mult(new float[]{x,y}, xy);
+	  double W=0.0;
+	  double H=0.0;
+	    
+	  if (this.size == "A3") {
+	    W=A3W; H=A3H;
+	  } else if (this.size == "A4"){
+	    W=A4W; H=A4H;
+	  }
 	  
-	  // cast xy to double
+	  this.transformMatrix.mult(new float[]{x,y}, xy);
 	  
 	  for (int i = 0 ; i < xy.length; i++)
 	  {
@@ -291,6 +299,7 @@ public class HPGLGraphics extends PGraphics {
 	  }
 	  
 	  ret = scaleToPaper(ret);
+	  ret[1] = H-ret[1];
 	  return ret;
   }
 
@@ -300,12 +309,16 @@ public class HPGLGraphics extends PGraphics {
    	return wh;
   }
   
+  /**
+   * 
+   * @return chord angle in degrees
+   */
   private double getChordAngle() {
 	  return chordangle;
   }
   
   /**
-   * This method sets the chord angle used for drawing arcs, circles and (TODO) ellipses.
+   * This method sets the chord angle (in degrees) used for drawing arcs, circles and (TODO) ellipses.
    * 
    * @example hpglArc
    * @param float ca: chord angle (degrees)
@@ -333,29 +346,57 @@ public class HPGLGraphics extends PGraphics {
   
   public void ellipseImpl(float x, float y, float w, float h) {
     
-	   double[] xy = new double[2];
-	   double[] wh = new double[2];
-    
+	double[] xy = new double[2];
+	double[] wh = new double[2];
+	double   ca = getChordAngle();
+	
     xy = getNewXY(x, y); // get the transformed/scaled points
     wh = getNewWH(w, h); // scaled width and height
     
-    if (Math.abs(w-h) < 0.1) { // a circle
-      writer.println("PU" + xy[0] + "," + xy[1] + ";");
-      writer.println("CI" + wh[0]/2.0 + "," + getChordAngle() + ";");
+    if (Math.abs(w-h) < 0.1) {
+    	
+      // draw a circle
+      writer.println("PU" + xy[0] + "," + xy[1] + ";");  
+      writer.println("CI" + wh[0]/2.0 + "," + ca + ";");
       writer.println("PU;");
+      
     } else {
+    	
       // draw an ellipse
+      double initx = xy[0] + wh[0]/2.0 * Math.cos(0.0);
+      double inity = xy[1] + wh[1]/2.0 * Math.sin(0.0);
+      double _x, _y;
+      
+      writer.println("PU" + initx + "," + inity + ";");
+      
+      for (double t=ca; t<360.0; t+=ca) {
+    	  
+    	_x = xy[0] + wh[0]/2.0 * Math.cos(Math.toRadians(t));
+    	_y = xy[1] + wh[1]/2.0 * Math.sin(Math.toRadians(t));
+    	
+    	if (Math.abs(_x) < 0.01) _x=0.01;
+    	if (Math.abs(_y) < 0.01) _y=0.01;
+        
+        writer.println("PD" + _x + "," + _y + ";");
+        
+      }
+      
+      writer.println("PD" + initx + "," + inity + ";");
+      writer.println("PU;");
+      
     }
+    
   }
   
   // arcs
   
   public void arc(float x, float y, float w, float h, float start, float stop) {
 	arc(x,y,w,h,start,stop,OPEN);
-  }  
+  }
+  
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
 	
-	   double[] xy   = new double[2];
+	double[] xy   = new double[2];
    	double[] x1y1 = new double[2];
    	double[] x2y2 = new double[2];
     double   x1, y1, x2, y2;
@@ -375,15 +416,6 @@ public class HPGLGraphics extends PGraphics {
     double stopd  = 360 - stop*180.0/PI;
     
     if (Math.abs(w-h) < 0.1) {
-      
-      /* // draw start point circle (debug)
-      writer.println("SP3;");
-      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-      writer.println("CI200.0;");
-      // draw stop point circle (debug)
-      writer.println("SP2;");
-      writer.println("PU" + x2y2[0] + "," + x2y2[1] + ";");
-      writer.println("CI200.0;"); */
 
       // draw the arc
       writer.println("SP1;");
@@ -391,15 +423,12 @@ public class HPGLGraphics extends PGraphics {
       writer.println("PD;AA"+xy[0]+","+xy[1]+","+(stopd-startd)+","+getChordAngle()+";");
       
       if (mode == CHORD) {
-    	  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
-    	  //writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+        writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
       }
       
       if (mode == PIE){
-       writer.println("PD" + xy[0] + "," + xy[1] + ";");
-    	  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
-    	  
-    	  //writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
+        writer.println("PD" + xy[0] + "," + xy[1] + ";");
+        writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
       }
 
       writer.println("PU;");
@@ -413,8 +442,8 @@ public class HPGLGraphics extends PGraphics {
       
     double[] x1y1 = new double[2];
    	double[] x2y1 = new double[2];
-	   double[] x2y2 = new double[2];
-	   double[] x1y2 = new double[2];
+	double[] x2y2 = new double[2];
+	double[] x1y2 = new double[2];
 
     // get the transformed/scaled points    
     x1y1 = getNewXY(x1,y1);
