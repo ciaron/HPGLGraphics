@@ -25,6 +25,8 @@ Some additional methods are available for controlling the HPGL output. This incl
   * setPaperSize();           // "A3" or "A4". Landscape orientation is assumed.
   * setPath("filename.hpgl"); // required. HPGL is output to this file in the sketch directory.
 
+To check your HPGL files, I recommend [hp2xx](https://www.gnu.org/software/hp2xx/)
+
 This library was inspired by, and builds upon, these libraries:
   * [HPGL-Plotter](http://sjunnesson.github.io/HPGL-Plotter/)
   * [HPGL](https://github.com/gregersn/HPGL)
