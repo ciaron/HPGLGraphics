@@ -347,6 +347,7 @@ public class HPGLGraphics extends PGraphics {
   public void ellipseImpl(float x, float y, float w, float h) {
     
 	double[] xy = new double[2];
+	double[] initxy = new double[2];
 	double[] wh = new double[2];
 	double   ca = getChordAngle();
 	
@@ -363,25 +364,33 @@ public class HPGLGraphics extends PGraphics {
     } else {
     	
       // draw an ellipse
-      double initx = xy[0] + wh[0]/2.0 * Math.cos(0.0);
-      double inity = xy[1] + wh[1]/2.0 * Math.sin(0.0);
+      //double initx = xy[0] + wh[0]/2.0 * Math.cos(0.0);
+      //double inity = xy[1] + wh[1]/2.0 * Math.sin(0.0);
+      double initx = x + w/2.0 * Math.cos(0.0);
+      double inity = y + h/2.0 * Math.sin(0.0);
+      initxy = getNewXY((float)initx, (float)inity);
+     
       double _x, _y;
       
-      writer.println("PU" + initx + "," + inity + ";");
+      writer.println("PU" + initxy[0] + "," + initxy[1] + ";");
       
       for (double t=ca; t<360.0; t+=ca) {
     	  
-    	_x = xy[0] + wh[0]/2.0 * Math.cos(Math.toRadians(t));
-    	_y = xy[1] + wh[1]/2.0 * Math.sin(Math.toRadians(t));
+       	//_x = xy[0] + wh[0]/2.0 * Math.cos(Math.toRadians(t));
+    	   //_y = xy[1] + wh[1]/2.0 * Math.sin(Math.toRadians(t));
+    	   _x = x + w/2.0 * Math.cos(Math.toRadians(t));
+        _y = y + h/2.0 * Math.sin(Math.toRadians(t));
     	
-    	if (Math.abs(_x) < 0.01) _x=0.01;
-    	if (Math.abs(_y) < 0.01) _y=0.01;
+    	   if (Math.abs(_x) < 0.01) _x=0.01;
+    	   if (Math.abs(_y) < 0.01) _y=0.01;
+    	   
+    	   xy = getNewXY((float)_x, (float)_y);
         
-        writer.println("PD" + _x + "," + _y + ";");
+        writer.println("PD" + xy[0] + "," + xy[1] + ";");
         
       }
       
-      writer.println("PD" + initx + "," + inity + ";");
+      writer.println("PD" + initxy[0] + "," + initxy[1] + ";");
       writer.println("PU;");
       
     }
