@@ -25,5 +25,9 @@ Some additional methods are available for controlling the HPGL output. This incl
   * setPaperSize();           // "A3" or "A4". Landscape orientation is assumed.
   * setPath("filename.hpgl"); // required. HPGL is output to this file in the sketch directory.
 
-The website for the library is [here](ggg).
+This library was inspired by, and builds upon, these libraries:
+[HPGL-Plotter](http://sjunnesson.github.io/HPGL-Plotter/)
+[HPGL](https://github.com/gregersn/HPGL)
+
+The website for the library is [here](https://ciaron.github.io/HPGLGraphics).
 Source code is [here](https://github.com/ciaron/HPGLGraphics)
