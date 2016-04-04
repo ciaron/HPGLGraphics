@@ -1,5 +1,3 @@
-The following describes how to set up a Processing Library project in Eclipse and build it successfully, and to make your Library ready for distribution.
-
 ## HPGLGraphics Library for Processing
 
 This library implements [HPGL](https://en.wikipedia.org/wiki/HPGL) (Hewlett-Packard Graphics Language) file creation from Processing sketches. It works in much the same way as the PDF Export and DXF Export libraries bundled with Processing.
