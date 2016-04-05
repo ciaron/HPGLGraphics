@@ -245,6 +245,8 @@ public class HPGLGraphics extends PGraphics {
 	  double[] xy2 = new double[2];
 	  double[] xy3 = new double[2];
 	  double[] xy4 = new double[2];
+	  
+	  // initial control point comes from the existing vertices (must be at least one)
 	  xy1[0] = shapeVertices[vertexCount-1][0];
 	  xy1[1] = shapeVertices[vertexCount-1][1];
 	  
