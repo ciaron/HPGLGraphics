@@ -27,6 +27,7 @@ public class HPGLGraphics extends PGraphics {
   private PMatrix2D transformMatrix;
 
   private boolean matricesAllocated = false;
+  private boolean BEZIER=false;
   
   private String size;  // paper size, A3 or A4 for now
   private int MATRIX_STACK_DEPTH = 32;
@@ -166,23 +167,25 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void endShape(int mode){
+    if (!BEZIER) { // in this case we've handled vertices in bezierVertex()
+      int stop = vertexCount - 1;
     
-    int stop = vertexCount - 1;
+      writer.println("PU" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
     
-    writer.println("PU" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+      for (int i=1; i<=stop; i++){
+        writer.println("PD" + shapeVertices[i][0] + "," + shapeVertices[i][1] + ";");
+      }
     
-    for (int i=1; i<=stop; i++){
-      writer.println("PD" + shapeVertices[i][0] + "," + shapeVertices[i][1] + ";");
+      if (mode==CLOSE) {
+        // Pen down to starting point
+        writer.println("PD" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+      }
+    
+      writer.println("PU;");
+      vertexCount = 0;
+      shapeVertices = null;
     }
-    
-    if (mode==CLOSE) {
-      // Pen down to starting point
-      writer.println("PD" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
-    }
-    
-    writer.println("PU;");
-    vertexCount = 0;
-    shapeVertices = null;
+    BEZIER=false;
   }
   
   /*public void endShape(int mode) {
@@ -236,19 +239,37 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
-	  double[] xy1 =  new double[2];
-	  double[] xy2 =  new double[2];
-	  double[] xy3 =  new double[2];
-	  double[] xy4 =  new double[2];
+	  BEZIER=true;
+	  double[] xy  = new double[2];
+	  double[] xy1 = new double[2];
+	  double[] xy2 = new double[2];
+	  double[] xy3 = new double[2];
+	  double[] xy4 = new double[2];
 	  xy1[0] = shapeVertices[vertexCount-1][0];
 	  xy1[1] = shapeVertices[vertexCount-1][1];
 	  
 	  xy2 = scaleXY(x2, y2);
 	  xy3 = scaleXY(x3, y3);
 	  xy4 = scaleXY(x4, y4);
+	  	  
+	  for (int i=0; i<=2; i++) {
+	    vertexCount++;
+	    if (i==0) xy=xy2;
+	    if (i==1) xy=xy3;
+	    if (i==2) xy=xy4;
+	    
+	    if(vertexCount >= shapeVertices.length) {
+  	      double newVertices[][] = new double[shapeVertices.length*2][VERTEX_FIELD_COUNT];
+	      System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
+	      shapeVertices = newVertices;
+	    }
+	    shapeVertices[vertexCount-1][0] = xy[0];
+	    shapeVertices[vertexCount-1][1] = xy[1];
+	  }
+	  
 	  writer.println("PU" + xy1[0] + "," + xy1[1] + ";");
-	  writer.println("BZ" + xy2[0] + "," + xy2[1] + "," +  xy3[0] + "," + xy3[1] + "," + xy4[0] + "," + xy4[1] + ";");
-	  writer.println("PU;");
+	  writer.println("BZ" + (int)xy2[0] + "," + (int)xy2[1] + "," +  (int)xy3[0] + "," + (int)xy3[1] + "," + (int)xy4[0] + "," + (int)xy4[1] + ";");
+	  //writer.println("PU;");
 	
   }
   
