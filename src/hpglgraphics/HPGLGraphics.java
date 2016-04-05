@@ -148,6 +148,7 @@ public class HPGLGraphics extends PGraphics {
   
   public void beginShape() {
 	   shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
+	   vertexCount = 0;
   }
   
   /**
@@ -216,6 +217,10 @@ public class HPGLGraphics extends PGraphics {
     System.out.println("got a shape(): " + s);
   }
   */
+  
+  public void curveVertex(float x, float y){
+	  //System.out.println("in curveVertex()");
+  }
   
   public void vertex(float x, float y) {
 	   
