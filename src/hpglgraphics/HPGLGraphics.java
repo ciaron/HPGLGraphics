@@ -217,11 +217,7 @@ public class HPGLGraphics extends PGraphics {
     System.out.println("got a shape(): " + s);
   }
   */
-  
-  public void curveVertex(float x, float y){
-	  //System.out.println("in curveVertex()");
-  }
-  
+
   public void vertex(float x, float y) {
 	   
     vertexCount++;
@@ -243,7 +239,13 @@ public class HPGLGraphics extends PGraphics {
 
   }
   
+  public void curveVertex(float x, float y){
+    //System.out.println("in curveVertex()");
+    
+  }
+  
   public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
+    // TODO: replace this with interpolation: BZ command is not an HPGL command (at least on Roland)
 	  BEZIER=true;
 	  double[] xy  = new double[2];
 	  double[] xy1 = new double[2];
