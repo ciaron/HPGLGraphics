@@ -52,7 +52,7 @@ public class HPGLGraphics extends PGraphics {
    */
 
   public HPGLGraphics(){
-	   super();
+	super();
     welcome();
     
     if (!matricesAllocated) {   
@@ -229,10 +229,27 @@ public class HPGLGraphics extends PGraphics {
     double[] xy = new double[2];
           
     // get the transformed/scaled point
-    xy = getNewXY(x, y);
+    xy = scaleXY(x, y);
     shapeVertices[vertexCount-1][0] = xy[0];
     shapeVertices[vertexCount-1][1] = xy[1];
 
+  }
+  
+  public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
+	  double[] xy1 =  new double[2];
+	  double[] xy2 =  new double[2];
+	  double[] xy3 =  new double[2];
+	  double[] xy4 =  new double[2];
+	  xy1[0] = shapeVertices[vertexCount-1][0];
+	  xy1[1] = shapeVertices[vertexCount-1][1];
+	  
+	  xy2 = scaleXY(x2, y2);
+	  xy3 = scaleXY(x3, y3);
+	  xy4 = scaleXY(x4, y4);
+	  writer.println("PU" + xy1[0] + "," + xy1[1] + ";");
+	  writer.println("BZ" + xy2[0] + "," + xy2[1] + "," +  xy3[0] + "," + xy3[1] + "," + xy4[0] + "," + xy4[1] + ";");
+	  writer.println("PU;");
+	
   }
   
   // UTILITIES
@@ -270,7 +287,7 @@ public class HPGLGraphics extends PGraphics {
 //    return (maxrange-minrange)*val / (maxval-minval);
 //  }
 
-  private double[] getNewXY(float x, float y){
+  private double[] scaleXY(float x, float y){
  	  float[] xy = new float[2];
 	   double[] ret = new double[2];
 	  
@@ -295,7 +312,7 @@ public class HPGLGraphics extends PGraphics {
 	   return ret;
   }
 
-  private double[] getNewWH(double w, double h){
+  private double[] scaleWH(double w, double h){
    	double[] wh = {w,h};
    	wh = scaleToPaper(wh);
    	return wh;
@@ -328,8 +345,8 @@ public class HPGLGraphics extends PGraphics {
     double[] x1y1 = new double[2];
     double[] x2y2 = new double[2];
       
-    x1y1 = getNewXY(x1, y1); // get the transformed/scaled points
-    x2y2 = getNewXY(x2, y2); // get the transformed/scaled points
+    x1y1 = scaleXY(x1, y1); // get the transformed/scaled points
+    x2y2 = scaleXY(x2, y2); // get the transformed/scaled points
       
     writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
     writer.println("PD" + x2y2[0] + "," + x2y2[1] + ";");
@@ -343,8 +360,8 @@ public class HPGLGraphics extends PGraphics {
 	double[] wh = new double[2];
 	double   ca = getChordAngle();
 	
-    xy = getNewXY(x, y); // get the transformed/scaled points
-    wh = getNewWH(w, h); // scaled width and height
+    xy = scaleXY(x, y); // get the transformed/scaled points
+    wh = scaleWH(w, h); // scaled width and height
     
     if (Math.abs(w-h) < 0.1) {
     	
@@ -358,7 +375,7 @@ public class HPGLGraphics extends PGraphics {
       // draw an ellipse
       double initx = x + w/2.0 * Math.cos(0.0);
       double inity = y + h/2.0 * Math.sin(0.0);
-      initxy = getNewXY((float)initx, (float)inity);
+      initxy = scaleXY((float)initx, (float)inity);
      
       double _x, _y;
       
@@ -366,13 +383,13 @@ public class HPGLGraphics extends PGraphics {
       
       for (double t=ca; t<360.0; t+=ca) {
 
-    	   _x = x + w/2.0 * Math.cos(Math.toRadians(t));
+    	_x = x + w/2.0 * Math.cos(Math.toRadians(t));
         _y = y + h/2.0 * Math.sin(Math.toRadians(t));
     	
-    	   if (Math.abs(_x) < 0.01) _x=0.01;
-    	   if (Math.abs(_y) < 0.01) _y=0.01;
+    	if (Math.abs(_x) < 0.01) _x=0.01;
+    	if (Math.abs(_y) < 0.01) _y=0.01;
     	   
-    	   xy = getNewXY((float)_x, (float)_y);
+    	xy = scaleXY((float)_x, (float)_y);
         
         writer.println("PD" + xy[0] + "," + xy[1] + ";");
         
@@ -391,43 +408,43 @@ public class HPGLGraphics extends PGraphics {
   
   public void arc(float x, float y, float w, float h, float start, float stop, int mode) {
 	
-	   double[] xy   = new double[2];
-   	double[] x1y1 = new double[2];
-   	double[] x2y2 = new double[2];
-    double   x1, y1, x2, y2;
+	  double[] xy   = new double[2];
+	  double[] x1y1 = new double[2];
+	  double[] x2y2 = new double[2];
+	  double   x1, y1, x2, y2;
     
-    x1 = x + w/2 * Math.cos(start);
-    y1 = y + w/2 * Math.sin(start);
+	  x1 = x + w/2 * Math.cos(start);
+	  y1 = y + w/2 * Math.sin(start);
     
-    x2 = x + w/2 * Math.cos(stop);
-    y2 = y + w/2 * Math.sin(stop);
+	  x2 = x + w/2 * Math.cos(stop);
+	  y2 = y + w/2 * Math.sin(stop);
     
-    xy = getNewXY(x, y); // get the transformations:
-    x1y1 = getNewXY((float)x1, (float) y1);
-    x2y2 = getNewXY((float)x2, (float) y2);
+	  xy = scaleXY(x, y); // get the transformations:
+	  x1y1 = scaleXY((float)x1, (float) y1);
+	  x2y2 = scaleXY((float)x2, (float) y2);
     
-    // convert radians to degrees, swap clockwise to anti-clockwise
-    double startd = 360 - start*180.0/PI;
-    double stopd  = 360 - stop*180.0/PI;
+	  // convert radians to degrees, swap clockwise to anti-clockwise
+	  double startd = 360 - start*180.0/PI;
+	  double stopd  = 360 - stop*180.0/PI;
     
-    if (Math.abs(w-h) < 0.1) {
+	  if (Math.abs(w-h) < 0.1) {
 
-      // draw the arc
-      writer.println("SP1;");
-      writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
-      writer.println("PD;AA"+xy[0]+","+xy[1]+","+(stopd-startd)+","+getChordAngle()+";");
+		  // draw the arc
+		  writer.println("SP1;");
+		  writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+		  writer.println("PD;AA"+xy[0]+","+xy[1]+","+(stopd-startd)+","+getChordAngle()+";");
       
-      if (mode == CHORD) {
-        writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
-      }
+		  if (mode == CHORD) {
+			  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
+		  }
       
-      if (mode == PIE){
-        writer.println("PD" + xy[0] + "," + xy[1] + ";");
-        writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
-      }
+		  if (mode == PIE){
+			  writer.println("PD" + xy[0] + "," + xy[1] + ";");
+			  writer.println("PD" + x1y1[0] + "," + x1y1[1] + ";");
+		  }
 
-      writer.println("PU;");
-    }
+		  writer.println("PU;");
+	  }
     
   }
   
@@ -441,10 +458,10 @@ public class HPGLGraphics extends PGraphics {
    	double[] x1y2 = new double[2];
 
     // get the transformed/scaled points    
-    x1y1 = getNewXY(x1,y1);
-    x2y1 = getNewXY(x2,y1);
-    x1y2 = getNewXY(x1,y2);
-    x2y2 = getNewXY(x2,y2);
+    x1y1 = scaleXY(x1,y1);
+    x2y1 = scaleXY(x2,y1);
+    x1y2 = scaleXY(x1,y2);
+    x2y2 = scaleXY(x2,y2);
     
     writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
     writer.println("PD" + x2y1[0] + "," + x2y1[1] +
