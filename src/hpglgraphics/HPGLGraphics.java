@@ -27,7 +27,6 @@ public class HPGLGraphics extends PGraphics {
   private PMatrix2D transformMatrix;
 
   private boolean matricesAllocated = false;
-  private boolean BEZIER=false;
   
   private String size;  // paper size, A3 or A4 for now
   private int MATRIX_STACK_DEPTH = 32;
@@ -41,6 +40,7 @@ public class HPGLGraphics extends PGraphics {
   private int A3H = 11040;
   
   private double[][] shapeVertices;
+  //private double[][] bezierVertices;
 	
   public final static String VERSION = "##library.prettyVersion##";
 
@@ -168,25 +168,36 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void endShape(int mode){
-    if (!BEZIER) { // in this case we've handled vertices in bezierVertex()
+	  double x, y;
+	  double[] xy = new double[2];
+	  
       int stop = vertexCount - 1;
-    
-      writer.println("PU" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+      
+      x=shapeVertices[0][X];
+      y=shapeVertices[0][Y];
+      xy = scaleXY((float)x, (float)y);
+      
+      writer.println("PU" + xy[X] + "," + xy[Y] + ";");
     
       for (int i=1; i<=stop; i++){
-        writer.println("PD" + shapeVertices[i][0] + "," + shapeVertices[i][1] + ";");
+          x=shapeVertices[i][X];
+          y=shapeVertices[i][Y];
+          xy = scaleXY((float)x, (float)y);
+          writer.println("PD" + xy[X] + "," + xy[Y] + ";");
       }
     
       if (mode==CLOSE) {
-        // Pen down to starting point
-        writer.println("PD" + shapeVertices[0][0] + "," + shapeVertices[0][1] + ";");
+          x=shapeVertices[0][X];
+          y=shapeVertices[0][Y];
+          xy = scaleXY((float)x, (float)y);
+          // Pen down to starting point
+          writer.println("PD" + xy[X] + "," + xy[Y] + ";");
       }
     
       writer.println("PU;");
       vertexCount = 0;
       shapeVertices = null;
-    }
-    BEZIER=false;
+    
   }
   
   /*public void endShape(int mode) {
@@ -219,23 +230,26 @@ public class HPGLGraphics extends PGraphics {
   */
 
   public void vertex(float x, float y) {
-	   
+	
+	System.out.println(" "+x+" "+y);
+	  
     vertexCount++;
     
     // check if shapeVertices is big enough, extend if necessary.
     // via OBJExport (MeshExport.java)
     if(vertexCount >= shapeVertices.length) {
       double newVertices[][] = new double[shapeVertices.length*2][VERTEX_FIELD_COUNT];
-      System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
+      System.arraycopy(shapeVertices, 0, newVertices, 0, shapeVertices.length);
       shapeVertices = newVertices;
     }
     
     double[] xy = new double[2];
           
     // get the transformed/scaled point
-    xy = scaleXY(x, y);
-    shapeVertices[vertexCount-1][0] = xy[0];
-    shapeVertices[vertexCount-1][1] = xy[1];
+//    xy = scaleXY(x, y);
+    
+    shapeVertices[vertexCount-1][X] = x;//xy[X];
+    shapeVertices[vertexCount-1][Y] = y;//xy[Y];
 
   }
   
@@ -243,43 +257,30 @@ public class HPGLGraphics extends PGraphics {
     //System.out.println("in curveVertex()");
     
   }
-  
+ 
   public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
-    // TODO: replace this with interpolation: BZ command is not an HPGL command (at least on Roland)
-	  BEZIER=true;
-	  double[] xy  = new double[2];
-	  double[] xy1 = new double[2];
-	  double[] xy2 = new double[2];
-	  double[] xy3 = new double[2];
-	  double[] xy4 = new double[2];
+      // We add vertices to shapeVertices here. Code mostly copies from PGraphics. Is there a better way?
+	  // But here we are...
+      bezierDetail(bezierDetail);
+	  PMatrix3D draw = bezierDrawMatrix;
+	 
+	  double[] prev = shapeVertices[vertexCount-1];
+	  double x1 = prev[X];
+	  double y1 = prev[Y];
 	  
-	  // initial control point comes from the existing vertices (must be at least one)
-	  xy1[0] = shapeVertices[vertexCount-1][0];
-	  xy1[1] = shapeVertices[vertexCount-1][1];
-	  
-	  xy2 = scaleXY(x2, y2);
-	  xy3 = scaleXY(x3, y3);
-	  xy4 = scaleXY(x4, y4);
-	  	  
-	  for (int i=0; i<=2; i++) {
-	    vertexCount++;
-	    if (i==0) xy=xy2;
-	    if (i==1) xy=xy3;
-	    if (i==2) xy=xy4;
-	    
-	    if(vertexCount >= shapeVertices.length) {
-  	      double newVertices[][] = new double[shapeVertices.length*2][VERTEX_FIELD_COUNT];
-	      System.arraycopy(shapeVertices,0,newVertices,0,shapeVertices.length);
-	      shapeVertices = newVertices;
-	    }
-	    shapeVertices[vertexCount-1][0] = xy[0];
-	    shapeVertices[vertexCount-1][1] = xy[1];
-	  }
-	  
-	  writer.println("PU" + xy1[0] + "," + xy1[1] + ";");
-	  writer.println("BZ" + (int)xy2[0] + "," + (int)xy2[1] + "," +  (int)xy3[0] + "," + (int)xy3[1] + "," + (int)xy4[0] + "," + (int)xy4[1] + ";");
-	  //writer.println("PU;");
+	  double xplot1 = draw.m10*x1 + draw.m11*x2 + draw.m12*x3 + draw.m13*x4;
+	  double xplot2 = draw.m20*x1 + draw.m21*x2 + draw.m22*x3 + draw.m23*x4;
+	  double xplot3 = draw.m30*x1 + draw.m31*x2 + draw.m32*x3 + draw.m33*x4;
 	
+	  double yplot1 = draw.m10*y1 + draw.m11*y2 + draw.m12*y3 + draw.m13*y4;
+	  double yplot2 = draw.m20*y1 + draw.m21*y2 + draw.m22*y3 + draw.m23*y4;
+	  double yplot3 = draw.m30*y1 + draw.m31*y2 + draw.m32*y3 + draw.m33*y4;
+	
+	  for (int j = 0; j < bezierDetail; j++) {
+	    x1 += xplot1; xplot1 += xplot2; xplot2 += xplot3;
+	    y1 += yplot1; yplot1 += yplot2; yplot2 += yplot3;
+	    vertex((float)x1, (float)y1);
+	  } 
   }
   
   // UTILITIES
