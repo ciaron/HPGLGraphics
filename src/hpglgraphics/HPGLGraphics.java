@@ -196,14 +196,16 @@ public class HPGLGraphics extends PGraphics {
     
       writer.println("PU;");
       vertexCount = 0;
+      curveVertexCount = 0;
       shapeVertices = null;
+      curveVertices = null;
     
   }
 
   public void vertex(float x, float y) {
 	
 	//System.out.println(" "+x+" "+y);
-	curveVertexCount = 0;
+   	curveVertexCount = 0;
     vertexCount++;
     
     // check if shapeVertices is big enough, extend if necessary.
