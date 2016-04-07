@@ -199,40 +199,11 @@ public class HPGLGraphics extends PGraphics {
       shapeVertices = null;
     
   }
-  
-  /*public void endShape(int mode) {
-    System.out.println("endShape, mode: " + mode);
-    
-   	switch(shape) {
-      case TRIANGLE:
-        {
-          System.out.println("TRIANGLE " + vertexCount);
-          for (int i=0; i<vertexCount; i++) {
-        	   System.out.println(vertices[i][0]);
-        	   System.out.println(vertices[i][1]);
-          }
-        }
-        break;
-        
-      case QUAD:
-	       {
-	         System.out.println("QUAD " + vertexCount);
-	       }
-	       break;
-	       
-   	} // switch
-  }
- */ 
-  /*public void shape(PShape s){
-
-    System.out.println("got a shape(): " + s);
-  }
-  */
 
   public void vertex(float x, float y) {
 	
-	System.out.println(" "+x+" "+y);
-	  
+	//System.out.println(" "+x+" "+y);
+	curveVertexCount = 0;
     vertexCount++;
     
     // check if shapeVertices is big enough, extend if necessary.
@@ -243,19 +214,88 @@ public class HPGLGraphics extends PGraphics {
       shapeVertices = newVertices;
     }
     
-    double[] xy = new double[2];
-          
-    // get the transformed/scaled point
-//    xy = scaleXY(x, y);
-    
-    shapeVertices[vertexCount-1][X] = x;//xy[X];
-    shapeVertices[vertexCount-1][Y] = y;//xy[Y];
+    shapeVertices[vertexCount-1][X] = x;
+    shapeVertices[vertexCount-1][Y] = y;
 
   }
   
-  public void curveVertex(float x, float y){
-    //System.out.println("in curveVertex()");
-    
+  // CURVE VERTEX CODE FROM PGraphics.java
+  
+  protected void curveVertexCheck() {
+	curveVertexCheck(shape);
+  }
+
+  /**
+   * Perform initialization specific to curveVertex(), and handle standard
+   * error modes. Can be overridden by subclasses that need the flexibility.
+   */
+  protected void curveVertexCheck(int shape) {
+
+    // to improve code init time, allocate on first use.
+    if (curveVertices == null) {
+      curveVertices = new float[128][3];
+    }
+
+    if (curveVertexCount == curveVertices.length) {
+      // Can't use PApplet.expand() cuz it doesn't do the copy properly
+      float[][] temp = new float[curveVertexCount << 1][3];
+      System.arraycopy(curveVertices, 0, temp, 0, curveVertexCount);
+      curveVertices = temp;
+    }
+    curveInitCheck();
+  }
+  
+  public void curveVertex(float x, float y) {
+	    curveVertexCheck();
+	    float[] vertex = curveVertices[curveVertexCount];
+	    vertex[X] = x;
+	    vertex[Y] = y;
+	    curveVertexCount++;
+
+	    // draw a segment if there are enough points
+	    if (curveVertexCount > 3) {
+	      curveVertexSegment(curveVertices[curveVertexCount-4][X],
+	                         curveVertices[curveVertexCount-4][Y],
+	                         curveVertices[curveVertexCount-3][X],
+	                         curveVertices[curveVertexCount-3][Y],
+	                         curveVertices[curveVertexCount-2][X],
+	                         curveVertices[curveVertexCount-2][Y],
+	                         curveVertices[curveVertexCount-1][X],
+	                         curveVertices[curveVertexCount-1][Y]);
+	    }
+	  }
+  
+  /**
+   * Handle emitting a specific segment of Catmull-Rom curve. This can be
+   * overridden by subclasses that need more efficient rendering options.
+   */
+  protected void curveVertexSegment(float x1, float y1,
+                                    float x2, float y2,
+                                    float x3, float y3,
+                                    float x4, float y4) {
+    float x0 = x2;
+    float y0 = y2;
+
+    PMatrix3D draw = curveDrawMatrix;
+
+    float xplot1 = draw.m10*x1 + draw.m11*x2 + draw.m12*x3 + draw.m13*x4;
+    float xplot2 = draw.m20*x1 + draw.m21*x2 + draw.m22*x3 + draw.m23*x4;
+    float xplot3 = draw.m30*x1 + draw.m31*x2 + draw.m32*x3 + draw.m33*x4;
+
+    float yplot1 = draw.m10*y1 + draw.m11*y2 + draw.m12*y3 + draw.m13*y4;
+    float yplot2 = draw.m20*y1 + draw.m21*y2 + draw.m22*y3 + draw.m23*y4;
+    float yplot3 = draw.m30*y1 + draw.m31*y2 + draw.m32*y3 + draw.m33*y4;
+
+    // vertex() will reset splineVertexCount, so save it
+    int savedCount = curveVertexCount;
+
+    vertex(x0, y0);
+    for (int j = 0; j < curveDetail; j++) {
+      x0 += xplot1; xplot1 += xplot2; xplot2 += xplot3;
+      y0 += yplot1; yplot1 += yplot2; yplot2 += yplot3;
+      vertex(x0, y0);
+    }
+    curveVertexCount = savedCount;
   }
  
   public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
