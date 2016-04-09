@@ -48,7 +48,7 @@ public class HPGLGraphics extends PGraphics {
    * a Constructor, usually called in the setup() method in your sketch to
    * initialize and start the Library.
    * 
-   * @example demo
+   * @example simple_demo
    * 
    */
 
@@ -74,7 +74,7 @@ public class HPGLGraphics extends PGraphics {
    * This method sets the plotter output size. Used to scale the Processing sketch to
    * match either A3 or A4 dimensions (only these supported now)
    * 
-   * @example demo
+   * @example simple_demo
    * @param size String: "A3" or "A4", depending on the intended plot size
    */
   
@@ -86,7 +86,7 @@ public class HPGLGraphics extends PGraphics {
    * This method sets the path and filename for the HPGL output.
    * Must be called from the Processing sketch
    * 
-   * @example demo
+   * @example simple_demo
    * @param path String: name of file to save to
    */
   public void setPath(String path) {
@@ -105,7 +105,7 @@ public class HPGLGraphics extends PGraphics {
    * This method selects plotter pen via the HPGL 'SP' instruction.
    * Called from the Processing sketch.
    * 
-   * @example HPGL
+   * @example simple_demo
    * @param pen : integer number of pen to select (depends on plotter)
    */
   public void selectPen(int pen) {
@@ -151,17 +151,23 @@ public class HPGLGraphics extends PGraphics {
       setPath(filePath);
       endRecord();
   }
-  
+  /**
+   * begin a shape.
+   * Called from the Processing sketch.
+   * 
+   * @example shapes
+   *
+   */
   public void beginShape() {
 	   shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
 	   vertexCount = 0;
   }
   
   /**
-   * This method sets the chord angle (in degrees) used for drawing arcs, circles and ellipses.
+   * begin a shape
    * 
    * @example shapes
-   * @param int kind
+   * @param kind : type of shape (see Processing docs for beginShape())
    */
   public void beginShape(int kind) {
     shapeVertices = new double[DEFAULT_VERTICES][VERTEX_FIELD_COUNT];
@@ -207,7 +213,13 @@ public class HPGLGraphics extends PGraphics {
       curveVertices = null;
     
   }
-
+  /**
+   * This method converts vertices in Processing coordinates to
+   * plotter coordinates.
+   * 
+   * @example shapes
+   * 
+   */
   public void vertex(float x, float y) {
 	
 	//System.out.println(" "+x+" "+y);
@@ -228,9 +240,9 @@ public class HPGLGraphics extends PGraphics {
   }
   
   // CURVE VERTEX CODE FROM PGraphics.java
-  
+
   protected void curveVertexCheck() {
-	curveVertexCheck(shape);
+    curveVertexCheck(shape);
   }
 
   /**
@@ -252,7 +264,11 @@ public class HPGLGraphics extends PGraphics {
     }
     curveInitCheck();
   }
-  
+  /**
+   * 
+   * @example curves
+   * 
+   */
   public void curveVertex(float x, float y) {
 	    curveVertexCheck();
 	    float[] vertex = curveVertices[curveVertexCount];
@@ -305,7 +321,12 @@ public class HPGLGraphics extends PGraphics {
     }
     curveVertexCount = savedCount;
   }
- 
+  
+  /**
+   * 
+   * @example curves
+   * 
+   */
   public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4){
       // We add vertices to shapeVertices here. Code mostly copies from PGraphics. Is there a better way?
 	  // But here we are...
@@ -337,8 +358,6 @@ public class HPGLGraphics extends PGraphics {
    * This method returns x,y coordinates converted to plotter coordinates
    * It also flips the y-coordinate to match Processing axis orientation.
    * 
-   * @example demo
-   * @param float[] xy: A 2-array with the x and y parameters
    */
   private double[] scaleToPaper(double[] xy) {
     
@@ -361,10 +380,6 @@ public class HPGLGraphics extends PGraphics {
     return xy1;
     
   }
-  
-//  private double map(double val, double minval, double maxval, double minrange, double maxrange) {
-//    return (maxrange-minrange)*val / (maxval-minval);
-//  }
 
   private double[] scaleXY(float x, float y){
  	  float[] xy = new float[2];
@@ -408,8 +423,8 @@ public class HPGLGraphics extends PGraphics {
   /**
    * This method sets the chord angle (in degrees) used for drawing arcs, circles and ellipses.
    * 
-   * @example arc_test
-   * @param float ca: chord angle (degrees)
+   * @example arcs
+   * @param ca: chord angle (degrees)
    */
   public void setChordAngle(float ca) {
 	   chordangle=ca;
@@ -418,7 +433,12 @@ public class HPGLGraphics extends PGraphics {
   // END UTILITIES
   
   // DRAWING METHODS
-  
+  /**
+   * This method draws a line
+   * 
+   * @example simple_demo
+   * @param x1, y1, x2, y2: start and end coordinates of line
+   */
   public void line(float x1, float y1, float x2, float y2) {
 
     double[] x1y1 = new double[2];
@@ -432,12 +452,18 @@ public class HPGLGraphics extends PGraphics {
     writer.println("PU;");
   }
   
+  /**
+   * This method implements the ellipse() method
+   * 
+   * @example ellipse
+   * @param x, y, w, h: center-coordinates, width and height of ellipse.
+   */
   public void ellipseImpl(float x, float y, float w, float h) {
     
-	double[] xy = new double[2];
-	double[] initxy = new double[2];
-	double[] wh = new double[2];
-	double   ca = getChordAngle();
+    double[] xy = new double[2];
+    double[] initxy = new double[2];
+    double[] wh = new double[2];
+    double   ca = getChordAngle();
 	
     xy = scaleXY(x, y); // get the transformed/scaled points
     wh = scaleWH(w, h); // scaled width and height
