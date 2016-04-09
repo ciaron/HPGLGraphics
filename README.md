@@ -27,7 +27,8 @@ Some additional methods are available for controlling the HPGL output. This incl
 
     selectPen(int pen);       // choose another pen (e.g. colour)
     setPaperSize();           // "A3" or "A4". Landscape orientation. Defaults to A4
-    setPath("filename.hpgl"); // optional. HPGL is output to this file in the sketch directory. The default is "output.hpgl".
+    setPath("filename.hpgl"); // optional. HPGL is output to this file in the sketch directory. 
+                              // The default is "output.hpgl".
 
 ### Tips:
   * line() always finishes with Pen Up. To draw continuous joined lines without lifting the pen, use vertex() instead.
