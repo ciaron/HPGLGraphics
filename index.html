@@ -41,7 +41,7 @@
 
 <pre><code>import hpglgraphics.*;
 HPGLGraphics hpgl = (HPGLGraphics) createGraphics(width, height, HPGLGraphics.HPGL);
-setPath("filename.hpgl");
+
 beginRecord(hpgl);
 // do some drawing
 endRecord();
@@ -49,22 +49,31 @@ endRecord();
 
 <p>Have a look at the examples included with the library. These demonstrate:</p>
 
-<ul>
-<li>line()</li>
-<li>ellipse() (and circles)</li>
-<li>arc(0 (PIE, CHORD and OPEN)</li>
-<li>rect()</li>
-</ul>
+<pre><code>line()
+ellipse()
+arc()     // PIE, CHORD and OPEN
+rect()
+vertex()
+curveVertex()
+bezierVertex()
+</code></pre>
 
 <h3>
 <a id="additional-methods" class="anchor" href="#additional-methods" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Additional methods</h3>
 
 <p>Some additional methods are available for controlling the HPGL output. This include:</p>
 
+<pre><code>selectPen(int pen);         // choose another pen (e.g. colour)
+setPaperSize(String size);  // "A3" or "A4". Landscape orientation. Defaults to A4
+setPath(String filename);   // optional. HPGL is output to this file in the sketch directory. 
+                            // The default is "output.hpgl".
+</code></pre>
+
+<h3>
+<a id="tips" class="anchor" href="#tips" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tips:</h3>
+
 <ul>
-<li>selectPen(int pen);       // choose another pen (e.g. colour)</li>
-<li>setPaperSize();           // "A3" or "A4". Landscape orientation is assumed.</li>
-<li>setPath("filename.hpgl"); // required. HPGL is output to this file in the sketch directory.</li>
+<li>line() always finishes with Pen Up. To draw continuous joined lines without lifting the pen, use vertex() instead.</li>
 </ul>
 
 <p>To check your HPGL files, I recommend <a href="https://www.gnu.org/software/hp2xx/">hp2xx</a></p>
