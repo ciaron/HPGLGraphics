@@ -53,8 +53,11 @@ public class HPGLGraphics extends PGraphics {
    */
 
   public HPGLGraphics(){
-	super();
+	   super();
     welcome();
+    
+//    this.path = parent.sketchPath("output.hpgl");
+//    file = new File(this.path);
     
     if (!matricesAllocated) {   
       // Init default matrix
@@ -110,9 +113,12 @@ public class HPGLGraphics extends PGraphics {
   }
   
   public void beginDraw() {
-	
+	   
    	if (this.path == null) {
-   	  throw new RuntimeException("call setPath() before recording begins!");
+   	  //throw new RuntimeException("call setPath() before recording begins!");
+   	  System.out.println("here1");
+   	  this.path = parent.sketchPath("output.hpgl");
+   	  file = new File(this.path);
   	 }
 	
 	   if (this.size == null) {
