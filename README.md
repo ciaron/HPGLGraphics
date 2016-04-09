@@ -4,7 +4,7 @@ This library implements [HPGL](https://en.wikipedia.org/wiki/HPGL) (Hewlett-Pack
 
 ### Getting started 
 
-Download the library [here](http://ciaron.net/hpglgraphics/download/hpglgraphics.zip).
+Download the library [here](http://ciaron.net/hpglgraphics/download/hpglgraphics.zip). Unzip into your sketchbook/libraries folder.
     
     import hpglgraphics.*;
     HPGLGraphics hpgl = (HPGLGraphics) createGraphics(width, height, HPGLGraphics.HPGL);
