@@ -26,7 +26,7 @@ Have a look at the examples included with the library. These demonstrate:
 Some additional methods are available for controlling the HPGL output. This include:
 
     selectPen(int pen);       // choose another pen (e.g. colour)
-    setPaperSize();           // "A3" or "A4". Landscape orientation is assumed.
+    setPaperSize();           // "A3" or "A4". Landscape orientation. Defaults to A4
     setPath("filename.hpgl"); // optional. HPGL is output to this file in the sketch directory. The default is "output.hpgl".
 
 ### Tips:
