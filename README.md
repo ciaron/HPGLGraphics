@@ -14,8 +14,8 @@ This library implements [HPGL](https://en.wikipedia.org/wiki/HPGL) (Hewlett-Pack
 Have a look at the examples included with the library. These demonstrate:
 
   * line()
-  * ellipse() (and circles)
-  * arc(0 (PIE, CHORD and OPEN)
+  * ellipse()
+  * arc() - PIE, CHORD and OPEN
   * rect()
   * vertex()
   * curveVertex()
