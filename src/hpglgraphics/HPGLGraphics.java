@@ -77,6 +77,9 @@ public class HPGLGraphics extends PGraphics {
    * @example simple_demo
    * @param size String: "A3" or "A4", depending on the intended plot size
    */
+  public void setCurveDetail(int d) {
+    curveDetail = d;
+  }
   
   public void setPaperSize(String size) {
     this.size=size;

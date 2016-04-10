@@ -13,10 +13,9 @@ void setup(){
   beginRecord(hpgl);
   
   strokeWeight(1);
-  rect(10, 10, width-20, height-20);
-  //rect(10, 10, 200, 00);
-  /*beginShape();
-  stroke(255,0,255); //MAGENTA
+  
+  beginShape();
+  
   curveVertex(50, 50);
   curveVertex(50, 50);
   curveVertex(400, 200);
@@ -26,8 +25,6 @@ void setup(){
   
   beginShape();
   
-   stroke(255,0,0); //RED
-
    vertex( 50,   50);
    bezierVertex(200, 600, 400, 200, 500, 400);
     
@@ -35,7 +32,7 @@ void setup(){
   
   //BEZIER VERTEX
   beginShape();
-   stroke(0); //BLACK
+
    vertex(520, 400);
    bezierVertex(700, 348, 532, 459, 589, 92);
   endShape();
@@ -44,7 +41,6 @@ void setup(){
   pushMatrix();
   translate(300, 0);
   beginShape();
-    stroke(0,255,0); //BLACK
     curveVertex(200, 800);
     curveVertex(390, 270);
     curveVertex(532, 376);
@@ -59,7 +55,7 @@ void setup(){
    bezierVertex(250, 280, 260, 225, 230, 220);
   endShape();
   
-*/
+
   
   endRecord();
   
