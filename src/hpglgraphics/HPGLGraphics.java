@@ -39,6 +39,13 @@ public class HPGLGraphics extends PGraphics {
   private int A3W = 16158;
   private int A3H = 11040;
   
+  private int A4Wmm = 297;
+  private int A4Hmm = 210;
+  private int A3Wmm = 420;
+  private int A3Hmm = 297;
+      
+  private char terminator = (char)3; // Label/text terminator;
+  
   private double[][] shapeVertices;
   //private double[][] bezierVertices;
 	
@@ -580,6 +587,45 @@ public class HPGLGraphics extends PGraphics {
            
   }
 
+  
+  public void text(String s, float x, float y) {
+    double[] x1y1 = new double[2];
+    x1y1 = scaleXY(x,y);
+    
+    writer.println("PU" + x1y1[0] + "," + x1y1[1] + ";");
+    writer.println("DT" + terminator + ";");
+    writer.println("LB" + s + terminator + ";");
+  }
+  
+  public void textSize(float sizepx){
+    
+    double sizecm_w=0.19;  // default 
+    double sizecm_h=0.27;
+    double paperWidth=1.0;
+    double paperHeight=1.0;
+    
+    if (this.size == "A3") {
+      //sizecm_w=0.29;
+      //sizecm_h=0.38;
+      paperWidth=A3Wmm;
+      paperHeight=A3Hmm;
+    } else if (this.size == "A4"){
+      //sizecm_w=0.19;
+      //sizecm_h=0.27;
+      paperWidth=A4Wmm;
+      paperHeight=A4Hmm;
+    }
+    
+    //sizecm_w = (sizepx*paperWidth)/this.width/10;
+    //sizecm_h = sizecm_w*(0.27/0.19);
+    
+    sizecm_h = (sizepx*paperHeight)/this.height/10/2;
+    sizecm_w = sizecm_h*(0.19/0.27);
+    
+    // get the size of the text in pixels, convert to cm based on selected paper size;
+    writer.println("SI" + sizecm_w + "," + sizecm_h + ";");
+  }
+  
   // MATRIX STACK - from GraphicsHPGL.java, gsn/src
 
   public void pushMatrix() {
