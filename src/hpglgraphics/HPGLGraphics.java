@@ -587,7 +587,15 @@ public class HPGLGraphics extends PGraphics {
            
   }
 
-  
+  /**
+   * This method puts text in the HPGL output.
+   * 
+   * 
+   * @example text
+   * @param s String : text to write
+   * @param x float : x location (pixels)
+   * @param y float : y location (pixels)
+   */
   public void text(String s, float x, float y) {
     double[] x1y1 = new double[2];
     x1y1 = scaleXY(x,y);
@@ -597,6 +605,15 @@ public class HPGLGraphics extends PGraphics {
     writer.println("LB" + s + terminator + ";");
   }
   
+  /**
+   * This method sets text size in the HPGL output.
+   * 
+   * Note: this doesn't work very well for different font sizes.
+   * You'll need to experiment to get things accurate.
+   * 
+   * @example text
+   * @param sizepx float : size of the text in pixels
+   */
   public void textSize(float sizepx){
     
     double sizecm_w=0.19;  // default 
