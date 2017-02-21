@@ -443,6 +443,18 @@ public class HPGLGraphics extends PGraphics {
   // END UTILITIES
   
   // DRAWING METHODS
+  
+  public void point(float x, float y) {
+    
+    double[] xy = new double[2];
+    
+    xy = scaleXY(x, y); // get the transformed/scaled points
+      
+    writer.println("PU" + xy[0] + "," + xy[1] + ";");
+    writer.println("PD;");
+    writer.println("PU;");  
+    
+  }
   /**
    * This method draws a line
    * 
