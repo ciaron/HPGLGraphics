@@ -146,7 +146,8 @@ public class HPGLGraphics extends PGraphics {
    	}
   }
 
-  public void endDraw(String path) {
+  //public void endDraw(String path) {
+  public void endDraw() {
 
     writeFooter();
     writer.flush();
@@ -726,7 +727,7 @@ public class HPGLGraphics extends PGraphics {
   }
   
   private void writeFooter() {
-    writer.println("PU0,0;");
+    writer.println("PA0,0;SP;");
   }
 
   // GENERAL METHODS
