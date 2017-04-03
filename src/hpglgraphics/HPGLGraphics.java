@@ -687,6 +687,17 @@ public class HPGLGraphics extends PGraphics {
     //this.modelView.print();
   }
   
+
+  public void scale(float s) {
+	//System.out.print("hereA");
+    this.transformMatrix.scale(s,s);
+  }
+  
+  public void scale(float x, float y) {
+	  System.out.print("here1");
+	  this.transformMatrix.scale(x,y);    
+  }
+  
   public void rotate(float angle) { 
     this.transformMatrix.rotate(angle);
   }
