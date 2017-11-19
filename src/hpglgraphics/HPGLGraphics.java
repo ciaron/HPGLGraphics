@@ -119,7 +119,11 @@ public class HPGLGraphics extends PGraphics {
    * @param pen : integer number of pen to select (depends on plotter)
    */
   public void selectPen(int pen) {
-    writer.println("SP"+pen+";");
+    if(writer != null) {
+      writer.println("SP"+pen+";");
+    } else {
+      System.out.println("selectPen() used outside of beginRecord() has no effect");
+    }
   }
 
   /**
