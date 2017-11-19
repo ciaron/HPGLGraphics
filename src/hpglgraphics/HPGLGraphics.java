@@ -110,16 +110,30 @@ public class HPGLGraphics extends PGraphics {
 		    throw new RuntimeException("Something went wrong trying to create file "+this.path);
    	}
   }
-  
+
   /**
    * This method selects plotter pen via the HPGL 'SP' instruction.
    * Called from the Processing sketch.
-   * 
+   *
    * @example simple_demo
    * @param pen : integer number of pen to select (depends on plotter)
    */
   public void selectPen(int pen) {
-    writer.println("SP"+pen+";");    
+    writer.println("SP"+pen+";");
+  }
+
+  /**
+   * This method sets speed for pen moves when down via the HPGL 'VS' instruction.
+   *
+   * @example speed
+   * @param speed : integer number for speed from 0 to 127
+   */
+  public void setSpeed(int speed) {
+    if(writer != null) {
+      writer.println("VS"+speed+";");
+    } else {
+      System.out.println("setSpeed() used outside of beginRecord() has no effect");
+    }
   }
   
   public void beginDraw() {
